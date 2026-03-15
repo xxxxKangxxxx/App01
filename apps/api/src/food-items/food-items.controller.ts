@@ -47,6 +47,15 @@ export class FoodItemsController {
     return this.foodItemsService.create(req.user.id, dto);
   }
 
+  @Post('bulk')
+  async bulkCreate(
+    @Request() req: { user: { id: string } },
+    @Body() dto: { items: CreateFoodItemDto[] },
+  ) {
+    const created = await this.foodItemsService.bulkCreate(req.user.id, dto.items);
+    return { created, count: created.length };
+  }
+
   @Get(':id')
   findOne(
     @Param('id') id: string,

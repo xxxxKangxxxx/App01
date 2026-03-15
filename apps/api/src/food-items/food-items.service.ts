@@ -88,6 +88,15 @@ export class FoodItemsService {
     await this.prisma.foodItem.delete({ where: { id } });
   }
 
+  async bulkCreate(userId: string, items: CreateFoodItemDto[]) {
+    const results = [];
+    for (const dto of items) {
+      const item = await this.create(userId, dto);
+      results.push(item);
+    }
+    return results;
+  }
+
   async findExpiringSoon(daysAhead: number) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);

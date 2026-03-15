@@ -1,23 +1,46 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import type { FoodItem } from '@freshbox/types';
 import type { ZoneConfig } from './fridgeConfigs';
 import { getFoodEmoji } from '../../constants/foodEmoji';
 
 const MAX_VISIBLE = 4;
 
-function getExpiryColor(expiresAt?: string | null): string {
-  if (!expiresAt) return '#9ca3af';
+function getDaysUntilExpiry(expiresAt?: string | null): number | null {
+  if (!expiresAt) return null;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const exp = new Date(expiresAt);
   exp.setHours(0, 0, 0, 0);
-  const days = Math.ceil((exp.getTime() - today.getTime()) / 86400000);
+  return Math.ceil((exp.getTime() - today.getTime()) / 86400000);
+}
+
+function getExpiryColor(expiresAt?: string | null): string {
+  const days = getDaysUntilExpiry(expiresAt);
+  if (days === null) return '#9ca3af';
   if (days < 0) return '#9ca3af';
   if (days === 0) return '#ef4444';
   if (days <= 3) return '#f97316';
   if (days <= 7) return '#eab308';
   return '#22c55e';
+}
+
+function getShelfStatus(items: FoodItem[]): { color: string; urgentCount: number } {
+  let urgentCount = 0;
+  let worstDays = Infinity;
+
+  for (const item of items) {
+    const days = getDaysUntilExpiry(item.expiresAt);
+    if (days !== null && days <= 3) {
+      urgentCount++;
+      if (days < worstDays) worstDays = days;
+    }
+  }
+
+  if (urgentCount === 0) return { color: '#22c55e', urgentCount: 0 };
+  if (worstDays <= 0) return { color: '#ef4444', urgentCount };
+  return { color: '#f97316', urgentCount };
 }
 
 interface FlatShelfProps {
@@ -32,6 +55,8 @@ export function FlatShelf({ zone, shelfNumber, items, onPress, compact = false }
   const maxVisible = compact ? 3 : MAX_VISIBLE;
   const visible = items.slice(0, maxVisible);
   const extra = items.length - maxVisible;
+  const isEmpty = items.length === 0;
+  const { color: statusColor, urgentCount } = getShelfStatus(items);
 
   return (
     <TouchableOpacity
@@ -40,15 +65,53 @@ export function FlatShelf({ zone, shelfNumber, items, onPress, compact = false }
       style={{ paddingVertical: compact ? 3 : 6, paddingHorizontal: compact ? 6 : 10 }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', minHeight: compact ? 28 : 32 }}>
-        {/* 층 번호 */}
-        <Text style={{ fontSize: compact ? 10 : 11, color: '#9ca3af', width: compact ? 18 : 24, fontWeight: '600' }}>
-          {shelfNumber}F
-        </Text>
+        {/* 층 번호 + 채워짐 인디케이터 */}
+        <View style={{ width: compact ? 18 : 24, alignItems: 'center' }}>
+          <Text style={{ fontSize: compact ? 10 : 11, color: '#9ca3af', fontWeight: '600' }}>
+            {shelfNumber}F
+          </Text>
+          {/* 미니 채워짐 바 */}
+          <View
+            style={{
+              width: compact ? 12 : 16,
+              height: 3,
+              borderRadius: 1.5,
+              backgroundColor: '#e5e7eb',
+              marginTop: 2,
+              overflow: 'hidden',
+            }}
+          >
+            <View
+              style={{
+                width: isEmpty ? 0 : '100%',
+                height: '100%',
+                borderRadius: 1.5,
+                backgroundColor: isEmpty ? 'transparent' : statusColor,
+              }}
+            />
+          </View>
+        </View>
 
         {/* 아이템 목록 */}
-        <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-          {visible.length === 0 ? (
-            <Text style={{ fontSize: compact ? 11 : 12, color: '#d1d5db', fontStyle: 'italic' }}>비어 있음</Text>
+        <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: 4, marginLeft: 4 }}>
+          {isEmpty ? (
+            <View
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderWidth: 1,
+                borderStyle: 'dashed',
+                borderColor: '#d1d5db',
+                borderRadius: 8,
+                paddingVertical: compact ? 2 : 4,
+                gap: 4,
+              }}
+            >
+              <Ionicons name="add-outline" size={compact ? 12 : 14} color="#d1d5db" />
+              <Text style={{ fontSize: compact ? 10 : 11, color: '#d1d5db' }}>비어 있음</Text>
+            </View>
           ) : (
             visible.map((item) => (
               <View
@@ -87,9 +150,17 @@ export function FlatShelf({ zone, shelfNumber, items, onPress, compact = false }
             </View>
           )}
         </View>
-      </View>
 
-      {/* 선반 구분선 — removed, glass divider now handled by parent */}
+        {/* 임박 경고 아이콘 */}
+        {urgentCount > 0 && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 4, gap: 2 }}>
+            <Ionicons name="alert-circle" size={compact ? 12 : 14} color={statusColor} />
+            <Text style={{ fontSize: compact ? 9 : 10, color: statusColor, fontWeight: '700' }}>
+              {urgentCount}
+            </Text>
+          </View>
+        )}
+      </View>
     </TouchableOpacity>
   );
 }

@@ -31,6 +31,37 @@ function shadeColor(hex: string, amount: number): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
 }
 
+function getDaysUntilExpiry(expiresAt?: string | null): number | null {
+  if (!expiresAt) return null;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const exp = new Date(expiresAt);
+  exp.setHours(0, 0, 0, 0);
+  return Math.ceil((exp.getTime() - today.getTime()) / 86400000);
+}
+
+function getItemStats(items: FoodItem[]) {
+  let total = items.length;
+  let expired = 0;
+  let expiring = 0;
+  let safe = 0;
+
+  for (const item of items) {
+    const days = getDaysUntilExpiry(item.expiresAt);
+    if (days === null) {
+      safe++;
+    } else if (days < 0) {
+      expired++;
+    } else if (days <= 3) {
+      expiring++;
+    } else {
+      safe++;
+    }
+  }
+
+  return { total, expired, expiring, safe };
+}
+
 // ─── Glass Shelf Divider ───────────────────────────────────────────
 function GlassShelfDivider() {
   return (
@@ -49,6 +80,63 @@ function GlassShelfDivider() {
         colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0)']}
         style={{ height: 3 }}
       />
+    </View>
+  );
+}
+
+// ─── Zone Header ────────────────────────────────────────────────────
+function ZoneHeader({ zone, items }: { zone: ZoneConfig; items: FoodItem[] }) {
+  const isFreezer = zone.key.includes('냉동') || zone.key.includes('서랍');
+  const iconName = isFreezer ? 'snow' : zone.isDrawer ? 'file-tray-outline' : 'cube-outline';
+  const zoneItems = items.filter((i) => i.zone === zone.key);
+  const { expiring, expired } = getItemStats(zoneItems);
+  const urgentCount = expiring + expired;
+
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        gap: 4,
+      }}
+    >
+      <Ionicons name={iconName as any} size={11} color="#6b7280" />
+      <Text style={{ fontSize: 10, fontWeight: '700', color: '#6b7280', flex: 1 }}>
+        {zone.label}
+      </Text>
+      <Text style={{ fontSize: 9, color: '#9ca3af', fontWeight: '500' }}>
+        {zoneItems.length}개
+      </Text>
+      {urgentCount > 0 && (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            backgroundColor: expired > 0 ? '#fef2f2' : '#fff7ed',
+            borderRadius: 8,
+            paddingHorizontal: 4,
+            paddingVertical: 1,
+            gap: 2,
+          }}
+        >
+          <Ionicons
+            name="alert-circle"
+            size={10}
+            color={expired > 0 ? '#ef4444' : '#f97316'}
+          />
+          <Text
+            style={{
+              fontSize: 9,
+              fontWeight: '700',
+              color: expired > 0 ? '#ef4444' : '#f97316',
+            }}
+          >
+            {urgentCount}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -88,16 +176,8 @@ function FridgeInterior({ zones, items, frameColor, onShelfPress }: FridgeInteri
                 />
               </View>
             )}
-            <View
-              style={{
-                backgroundColor: bgColor,
-                paddingHorizontal: 8,
-                paddingVertical: 3,
-              }}
-            >
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#6b7280' }}>
-                {zone.label}
-              </Text>
+            <View style={{ backgroundColor: bgColor }}>
+              <ZoneHeader zone={zone} items={items} />
             </View>
             <View style={{ backgroundColor: bgColor }}>
               {Array.from({ length: zone.shelves }, (_, idx) => {
@@ -258,6 +338,78 @@ function WallStrip({ frameColor, side }: { frameColor: string; side: 'left' | 'r
   );
 }
 
+// ─── Header Summary Bar ────────────────────────────────────────────
+function HeaderSummary({ items, frameColor }: { items: FoodItem[]; frameColor: string }) {
+  const { total, expired, expiring, safe } = getItemStats(items);
+  const fillRatio = total > 0 ? Math.min(total / 30, 1) : 0;
+
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        backgroundColor: shadeColor(frameColor, 10),
+        gap: 8,
+      }}
+    >
+      {/* 채워짐 게이지 */}
+      <View style={{ flex: 1 }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 3,
+          }}
+        >
+          <Text style={{ fontSize: 10, color: '#6b7280', fontWeight: '600' }}>
+            {total}개 보관 중
+          </Text>
+        </View>
+        <View
+          style={{
+            height: 4,
+            borderRadius: 2,
+            backgroundColor: 'rgba(0,0,0,0.08)',
+            overflow: 'hidden',
+          }}
+        >
+          <View
+            style={{
+              width: `${fillRatio * 100}%`,
+              height: '100%',
+              borderRadius: 2,
+              backgroundColor: expired > 0 ? '#ef4444' : expiring > 0 ? '#f97316' : '#22c55e',
+            }}
+          />
+        </View>
+      </View>
+
+      {/* 상태 뱃지들 */}
+      {safe > 0 && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+          <Ionicons name="checkmark-circle" size={12} color="#22c55e" />
+          <Text style={{ fontSize: 10, color: '#22c55e', fontWeight: '700' }}>{safe}</Text>
+        </View>
+      )}
+      {expiring > 0 && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+          <Ionicons name="alert-circle" size={12} color="#f97316" />
+          <Text style={{ fontSize: 10, color: '#f97316', fontWeight: '700' }}>{expiring}</Text>
+        </View>
+      )}
+      {expired > 0 && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+          <Ionicons name="close-circle" size={12} color="#ef4444" />
+          <Text style={{ fontSize: 10, color: '#ef4444', fontWeight: '700' }}>{expired}</Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
 // ─── Main Component ────────────────────────────────────────────────
 export function RefrigeratorView({ refrigerator, items, onShelfPress }: RefrigeratorViewProps) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
@@ -362,6 +514,9 @@ export function RefrigeratorView({ refrigerator, items, onShelfPress }: Refriger
           </TouchableOpacity>
         )}
       </View>
+
+      {/* Summary bar (visible when open) */}
+      {isOpen && <HeaderSummary items={fridgeItems} frameColor={frameColor} />}
 
       {/* Body */}
       <View style={{ position: 'relative' }}>

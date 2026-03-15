@@ -77,6 +77,24 @@ export const refrigeratorsApi = {
   delete: (id: string) => apiClient.delete(`/refrigerators/${id}`),
 };
 
+// Receipt API
+export const receiptApi = {
+  parse: (ocrText: string) =>
+    apiClient.post('/receipt/parse', { ocrText }),
+};
+
+// Food Items Bulk API
+export const foodItemsBulkApi = {
+  bulkCreate: (items: unknown[]) =>
+    apiClient.post('/food-items/bulk', { items }),
+};
+
+// Shelf Life API
+export const shelfLifeApi = {
+  getAll: () => apiClient.get('/shelf-life'),
+  search: (query: string) => apiClient.get('/shelf-life/search', { params: { q: query } }),
+};
+
 // Auth API
 export const authApi = {
   refresh: (refreshToken: string) =>

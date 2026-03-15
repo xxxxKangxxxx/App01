@@ -7,6 +7,8 @@ import { UsersModule } from './users/users.module';
 import { FoodItemsModule } from './food-items/food-items.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { RefrigeratorsModule } from './refrigerators/refrigerators.module';
+import { ReceiptModule } from './receipt/receipt.module';
+import { ShelfLifeModule } from './shelf-life/shelf-life.module';
 
 @Module({
   imports: [
@@ -18,6 +20,8 @@ import { RefrigeratorsModule } from './refrigerators/refrigerators.module';
     FoodItemsModule,
     NotificationsModule,
     RefrigeratorsModule,
+    ReceiptModule,
+    ShelfLifeModule,
   ],
 })
 export class AppModule {}

@@ -74,6 +74,26 @@ enum RefrigeratorType {
   KIMCHI
 }
 
+model FoodShelfLife {
+  id            String        @id @default(cuid())
+  name          String
+  category      Category
+  defaultDays   Int
+  storageMethod StorageMethod @default(REFRIGERATED)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([name, storageMethod])
+  @@index([category])
+  @@index([name])
+}
+
+enum StorageMethod {
+  REFRIGERATED
+  FROZEN
+  ROOM_TEMP
+}
+
 enum Category {
   VEGETABLES
   FRUITS

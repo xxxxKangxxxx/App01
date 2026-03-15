@@ -58,6 +58,13 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="receipt-scan"
+        options={{
+          href: null,
+          headerTitle: '영수증 스캔',
+        }}
+      />
+      <Tabs.Screen
         name="edit"
         options={{
           href: null,

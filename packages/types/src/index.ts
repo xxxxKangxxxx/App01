@@ -160,3 +160,48 @@ export interface PaginatedResponse<T> {
   page: number;
   limit: number;
 }
+
+// ── Receipt Scan ──
+
+export interface ParseReceiptRequest {
+  ocrText: string;
+}
+
+export interface ReceiptItem {
+  name: string;
+  quantity: number;
+  unit: string;
+  category: Category;
+  purchasedAt: string;
+  expiresAt: string;
+  defaultShelfLifeDays: number;
+  confidence: 'high' | 'medium' | 'low';
+}
+
+export interface ParseReceiptResponse {
+  items: ReceiptItem[];
+  storeName?: string;
+  purchaseDate?: string;
+  totalAmount?: number;
+}
+
+export interface BulkCreateFoodItemDto {
+  items: CreateFoodItemDto[];
+}
+
+export interface BulkCreateFoodItemResponse {
+  created: FoodItem[];
+  count: number;
+}
+
+// ── Shelf Life ──
+
+export type StorageMethod = 'REFRIGERATED' | 'FROZEN' | 'ROOM_TEMP';
+
+export interface FoodShelfLife {
+  id: string;
+  name: string;
+  category: Category;
+  defaultDays: number;
+  storageMethod: StorageMethod;
+}

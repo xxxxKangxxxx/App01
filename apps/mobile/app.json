@@ -14,7 +14,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.freshbox.app"
+      "bundleIdentifier": "com.freshbox.app",
+      "deploymentTarget": "16.0"
     },
     "android": {
       "adaptiveIcon": {

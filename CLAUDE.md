@@ -407,6 +407,9 @@ PATCH  /api/users/me/push-token     ← 푸시 토큰 저장
 | Green screen / HostTarget crash | `pnpm ios`를 반드시 포그라운드(터미널 직접)로 실행. `&` 백그라운드 실행 금지 |
 | API 서버 `PrismaClientInitializationError` | Docker Desktop이 실행 중인지 확인 후 `docker start freshbox-postgres` |
 | `expo-linear-gradient` 모듈 해석 실패 | pnpm 심링크 문제 → `pnpm ios`로 네이티브 리빌드하면 해결. JS만 변경 시 Metro 캐시 클리어: `npx expo start --dev-client --port 8082 --clear` |
+| `@react-native-ml-kit/text-recognition` pod install 실패 (deployment target) | ML Kit이 iOS 15.5+ 요구하지만 프로젝트 기본 15.1 → **해결: ML Kit 제거 후 서버 사이드 OCR로 대체** (`services/ocr.ts`에서 `POST /receipt/ocr`로 이미지 전송). ML Kit은 디바이스 전용 바이너리(MLImage.framework)를 포함하여 Apple Silicon 시뮬레이터에서 링킹 오류 발생 |
+| `xcodebuild` 시뮬레이터 destination 못 찾음 (error code 70) | Xcode 26.x + expo prebuild 조합에서 발생. `npx expo prebuild --clean --platform ios` 후 `pnpm ios` 재빌드로 해결. DerivedData 캐시도 정리: `rm -rf ~/Library/Developer/Xcode/DerivedData/app-*` |
+| `expo-image-picker` 모듈 없음 (Metro 빨간 화면) | `npx expo install expo-image-picker` 설치 후 `pnpm ios` 네이티브 리빌드 필요 (네이티브 모듈) |
 
 ---
 

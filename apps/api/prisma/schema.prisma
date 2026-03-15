@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(cuid())
+  email         String?        @unique
+  name          String?
+  kakaoId       String?        @unique
+  naverId       String?        @unique
+  googleId      String?        @unique
+  pushToken     String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  foodItems     FoodItem[]
+  refrigerators Refrigerator[]
+}
+
+model Refrigerator {
+  id          String           @id @default(cuid())
+  name        String
+  type        RefrigeratorType @default(STANDARD)
+  color       String?
+  sortOrder   Int              @default(0)
+  customZones Json?
+  userId      String
+  user        User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  foodItems   FoodItem[]
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([userId])
+}
+
+model FoodItem {
+  id             String        @id @default(cuid())
+  name           String
+  category       Category
+  quantity        Float         @default(1)
+  unit           String        @default("개")
+  purchasedAt    DateTime?
+  expiresAt      DateTime?
+  location       String?
+  memo           String?
+  isConsumed     Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  userId         String
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refrigeratorId String?
+  refrigerator   Refrigerator? @relation(fields: [refrigeratorId], references: [id], onDelete: SetNull)
+  zone           String?
+  shelf          Int?
+  depth          String?
+  colPosition    String?
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@index([isConsumed])
+  @@index([refrigeratorId])
+  @@index([refrigeratorId, zone])
+}
+
+enum RefrigeratorType {
+  STANDARD
+  SIDE_BY_SIDE
+  FRENCH_DOOR
+  FREEZER
+  KIMCHI
+}
+
+enum Category {
+  VEGETABLES
+  FRUITS
+  MEAT
+  SEAFOOD
+  DAIRY
+  BEVERAGE
+  CONDIMENT
+  FROZEN
+  OTHER
+}

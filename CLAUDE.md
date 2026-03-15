@@ -38,10 +38,12 @@ freshbox/                        ← 모노레포 루트
 | SVG/3D | react-native-svg + expo-linear-gradient (3D 냉장고 뷰) |
 | 아이콘 | @expo/vector-icons (Ionicons) — UI 아이콘 전담 |
 | 날짜 선택 | @react-native-community/datetimepicker (네이티브) |
+| OCR | @react-native-ml-kit/text-recognition (온디바이스) |
+| 이미지 선택 | expo-image-picker (카메라 + 갤러리) |
 
 ---
 
-## 현재 개발 상태 (2026-03-15 업데이트, 2차)
+## 현재 개발 상태 (2026-03-15 업데이트, 3차)
 
 ### 완료된 작업
 - [x] 모노레포 초기화 (pnpm workspaces + Turborepo)
@@ -134,6 +136,19 @@ freshbox/                        ← 모노레포 루트
 - [x] **앱 이름 변경** (2026-03-15)
   - [x] FreshBox → 손안의냉장고 (app.json, 헤더, 로그인, 설정 화면)
 
+- [x] **영수증 스캔 — 식재료 자동 추가** (2026-03-15)
+  - [x] Prisma: `FoodShelfLife` 모델 + `StorageMethod` enum 추가
+  - [x] 시드 데이터: 120개+ 식재료 유통기한 + 9개 카테고리 폴백
+  - [x] 공유 타입: `ReceiptItem`, `ParseReceiptResponse`, `BulkCreateFoodItemDto`, `FoodShelfLife` 등
+  - [x] API: `receipt` 모듈 — `POST /api/receipt/parse` (정규식 + 휴리스틱 파서)
+  - [x] API: `shelf-life` 모듈 — `GET /api/shelf-life`, `GET /api/shelf-life/search`
+  - [x] API: `POST /api/food-items/bulk` 일괄 추가 엔드포인트
+  - [x] 모바일: `expo-image-picker` + `@react-native-ml-kit/text-recognition` 설치
+  - [x] 모바일: `services/ocr.ts` — ML Kit 온디바이스 텍스트 인식
+  - [x] 모바일: `hooks/useReceiptScan.ts` — 파싱/일괄추가 React Query 훅
+  - [x] 모바일: `add.tsx` — 상단 "영수증 스캔으로 추가" 버튼 + 구분선
+  - [x] 모바일: `receipt-scan.tsx` — 3단계 UX (이미지 선택 → 스캔 중 → 미리보기/수정/일괄추가)
+
 ### 남은 작업 — UI 개선 (진행 중)
 - [ ] FoodForm UX 개선 (카테고리 선택, 단위 선택 개선)
 - [ ] 알림 탭 개선 (카드 디자인, 스와이프 액션)
@@ -151,23 +166,13 @@ freshbox/                        ← 모노레포 루트
 
 ## 계획된 신규 기능
 
-### 1. 영수증 스캔 — 식재료 자동 추가
-> 카메라로 영수증을 촬영하면 AI가 식재료를 인식하여 자동으로 냉장고에 추가
-
-**필요한 작업**
-- [ ] `expo-camera` / `expo-image-picker` 추가 및 권한 설정
-- [ ] API 서버에 `/ai/scan-receipt` 엔드포인트 추가 (이미지 → Claude Vision 호출)
-- [ ] 모바일: 영수증 스캔 화면 (`app/(tabs)/scan.tsx`)
-- [ ] 모바일: 스캔 결과 확인 및 일괄 등록 화면
-
----
+### ~~1. 영수증 스캔~~ → 완료 (2026-03-15)
 
 ### 2. 유통기한 자동 제안
-> 식재료 이름 입력 시 해당 식재료의 일반적인 유통기한을 AI가 자동 제안
+> 식재료 이름 입력 시 ShelfLife DB를 활용하여 유통기한 자동 제안 (영수증 스캔에서 부분 구현됨)
 
 **필요한 작업**
-- [ ] API 서버에 `/ai/suggest-expiry` 엔드포인트 추가
-- [ ] 모바일: `FoodForm`에 유통기한 자동 제안 UI 연동
+- [ ] 모바일: `FoodForm`에서 이름 입력 시 `shelf-life/search` API 호출 → 유통기한 자동 입력
 
 ---
 
@@ -246,8 +251,13 @@ cd /Users/kang-yeongmo/App/freshbox/apps/mobile && pnpm dev   # JS만 변경
 | `refrigerators/refrigerators.service.ts` | 냉장고 CRUD (userId 소유권 검증) |
 | `refrigerators/refrigerators.controller.ts` | JWT 보호 REST endpoints |
 | `notifications/notifications.scheduler.ts` | Cron `0 9 * * *`, Expo Push API |
+| `receipt/receipt-parser.service.ts` | OCR 텍스트 → 정규식/휴리스틱 파싱 (품목/수량/날짜 추출) |
+| `receipt/receipt.controller.ts` | `POST /api/receipt/parse` |
+| `shelf-life/shelf-life.service.ts` | 유통기한 DB 조회 (정확/부분/카테고리 폴백) |
+| `shelf-life/shelf-life.controller.ts` | `GET /api/shelf-life`, `GET /api/shelf-life/search` |
 | `prisma/prisma.service.ts` | PrismaClient 싱글턴 |
-| `prisma/schema.prisma` | User + FoodItem + Refrigerator + enums |
+| `prisma/schema.prisma` | User + FoodItem + Refrigerator + FoodShelfLife + enums |
+| `prisma/seed.ts` | FoodShelfLife 시드 데이터 (120개+ 식재료 + 카테고리 폴백) |
 
 ### 모바일 (`apps/mobile/`)
 | 파일 | 역할 |
@@ -255,15 +265,18 @@ cd /Users/kang-yeongmo/App/freshbox/apps/mobile && pnpm dev   # JS만 변경
 | `app/_layout.tsx` | 루트 레이아웃, QueryClientProvider, Auth Guard, 모달 라우트 |
 | `app/(auth)/login.tsx` | SNS 로그인 화면 (카카오/네이버/구글 버튼) |
 | `app/(tabs)/index.tsx` | 홈 — 통계 요약 + 냉장고 카드 + 최근 추가 + 미분류 + 온보딩 |
-| `app/(tabs)/add.tsx` | 식재료 추가 |
+| `app/(tabs)/add.tsx` | 식재료 추가 (영수증 스캔 버튼 포함) |
+| `app/(tabs)/receipt-scan.tsx` | 영수증 스캔 — 이미지 선택 → OCR → 파싱 → 미리보기 → 일괄 추가 |
 | `app/(tabs)/edit.tsx` | 식재료 수정 (탭바 숨김, 라우트로만 접근) |
 | `app/(tabs)/alerts.tsx` | 유통기한 임박 목록 |
 | `app/(tabs)/settings.tsx` | 설정 — 프로필, 냉장고 관리, 알림, 로그아웃, 앱 정보 |
 | `app/modals/refrigerator-setup.tsx` | 냉장고 등록/수정/삭제 모달 |
 | `app/modals/shelf-detail.tsx` | 선반 상세 모달 (해당 층 식재료 목록) |
 | `store/auth.store.ts` | Zustand + SecureStore 토큰 관리 |
-| `services/api.ts` | axios 인스턴스 + JWT 인터셉터 + refrigeratorsApi |
+| `services/api.ts` | axios 인스턴스 + JWT 인터셉터 + receiptApi/shelfLifeApi 포함 |
+| `services/ocr.ts` | ML Kit 온디바이스 텍스트 인식 유틸 |
 | `hooks/useRefrigerators.ts` | 냉장고 CRUD React Query 훅 |
+| `hooks/useReceiptScan.ts` | 영수증 파싱 + 일괄 추가 React Query 훅 |
 | `components/FoodForm.tsx` | 식재료 입력 폼 (5단계 위치 선택 UI) |
 | `components/refrigerator/fridgeConfigs.ts` | 5종 냉장고 타입별 구역/층 설정 + `splitZones()` 유틸 |
 | `components/refrigerator/FlatShelf.tsx` | 2D 선반 아이템 렌더링 (compact 모드 지원) |
@@ -281,6 +294,8 @@ cd /Users/kang-yeongmo/App/freshbox/apps/mobile && pnpm dev   # JS만 변경
 - `Refrigerator`, `RefrigeratorType`, `REFRIGERATOR_TYPE_LABELS`
 - `CreateFoodItemDto`, `UpdateFoodItemDto` (위치 필드 포함)
 - `CreateRefrigeratorDto`, `UpdateRefrigeratorDto`
+- `ReceiptItem`, `ParseReceiptRequest/Response`, `BulkCreateFoodItemDto/Response`
+- `FoodShelfLife`, `StorageMethod`
 - `AuthTokens`, `LoginResponse`
 
 ---
@@ -326,9 +341,17 @@ GET    /api/auth/me                 ← 내 정보 조회
 # Food Items (JWT 필요)
 GET    /api/food-items              ← 목록 (query: category, location, expiringSoon, isConsumed)
 POST   /api/food-items
+POST   /api/food-items/bulk         ← 일괄 추가 (영수증 스캔용)
 GET    /api/food-items/:id
 PATCH  /api/food-items/:id
 DELETE /api/food-items/:id
+
+# Receipt (JWT 필요)
+POST   /api/receipt/parse           ← OCR 텍스트 → 품목 파싱
+
+# Shelf Life (JWT 필요)
+GET    /api/shelf-life              ← 전체 유통기한 목록
+GET    /api/shelf-life/search       ← 유통기한 검색 (query: q)
 
 # Refrigerators (JWT 필요)
 GET    /api/refrigerators           ← 내 냉장고 목록
@@ -387,6 +410,10 @@ FoodItem: id, name, category(enum), quantity, unit, purchasedAt, expiresAt,
 
 Refrigerator: id, name, type(RefrigeratorType), color, sortOrder, userId(FK), timestamps
 
+FoodShelfLife: id, name, category(enum), defaultDays(Int), storageMethod(StorageMethod), timestamps
+              @@unique([name, storageMethod])
+
 Category enum: VEGETABLES, FRUITS, MEAT, SEAFOOD, DAIRY, BEVERAGE, CONDIMENT, FROZEN, OTHER
 RefrigeratorType enum: STANDARD, SIDE_BY_SIDE, FRENCH_DOOR, FREEZER, KIMCHI
+StorageMethod enum: REFRIGERATED, FROZEN, ROOM_TEMP
 ```

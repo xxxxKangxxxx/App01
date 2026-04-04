@@ -17,6 +17,7 @@ import { useParseReceipt, useBulkCreateFoodItems } from '../../hooks/useReceiptS
 import { getFoodEmoji } from '../../constants/foodEmoji';
 import type { ReceiptItem, CreateFoodItemDto, Category } from '@freshbox/types';
 import { CATEGORY_LABELS } from '@freshbox/types';
+import { useThemeStore } from '../../store/theme.store';
 
 type Step = 'select' | 'scanning' | 'preview';
 
@@ -139,12 +140,13 @@ export default function ReceiptScanScreen() {
 }
 
 function SelectScreen({ onPick }: { onPick: (source: 'camera' | 'gallery') => void }) {
+  const { colors } = useThemeStore();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <View style={styles.selectContent}>
-        <Ionicons name="receipt-outline" size={64} color="#d1d5db" />
-        <Text style={styles.selectTitle}>영수증 스캔</Text>
-        <Text style={styles.selectDesc}>
+        <Ionicons name="receipt-outline" size={64} color={colors.border} />
+        <Text style={[styles.selectTitle, { color: colors.text }]}>영수증 스캔</Text>
+        <Text style={[styles.selectDesc, { color: colors.textSecondary }]}>
           영수증을 촬영하거나 사진을 선택하면{'\n'}
           품목이 자동으로 인식됩니다
         </Text>
@@ -159,11 +161,11 @@ function SelectScreen({ onPick }: { onPick: (source: 'camera' | 'gallery') => vo
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={[styles.selectButton, styles.galleryButton]}
+            style={[styles.selectButton, styles.galleryButton, { backgroundColor: colors.bgCard, borderColor: colors.border }]}
             onPress={() => onPick('gallery')}
           >
-            <Ionicons name="images-outline" size={24} color="#22c55e" />
-            <Text style={styles.galleryButtonText}>갤러리에서 선택</Text>
+            <Ionicons name="images-outline" size={24} color={colors.success} />
+            <Text style={[styles.galleryButtonText, { color: colors.success }]}>갤러리에서 선택</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -172,12 +174,13 @@ function SelectScreen({ onPick }: { onPick: (source: 'camera' | 'gallery') => vo
 }
 
 function ScanningScreen() {
+  const { colors } = useThemeStore();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <View style={styles.scanningContent}>
-        <ActivityIndicator size="large" color="#22c55e" />
-        <Text style={styles.scanningTitle}>영수증 분석 중...</Text>
-        <Text style={styles.scanningDesc}>
+        <ActivityIndicator size="large" color={colors.success} />
+        <Text style={[styles.scanningTitle, { color: colors.text }]}>영수증 분석 중...</Text>
+        <Text style={[styles.scanningDesc, { color: colors.textSecondary }]}>
           OCR로 텍스트를 추출하고{'\n'}
           품목을 파싱하고 있습니다
         </Text>
@@ -205,28 +208,29 @@ function PreviewScreen({
   onRetry: () => void;
   isLoading: boolean;
 }) {
+  const { colors } = useThemeStore();
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.bg }]}>
       <ScrollView style={styles.previewScroll} contentContainerStyle={{ paddingBottom: 100 }}>
         {/* 매장 / 날짜 정보 */}
         {(storeName || purchaseDate) && (
-          <View style={styles.receiptInfo}>
+          <View style={[styles.receiptInfo, { backgroundColor: colors.bgCard }]}>
             {storeName && (
               <View style={styles.infoRow}>
                 <Ionicons name="storefront-outline" size={16} color="#6b7280" />
-                <Text style={styles.infoText}>{storeName}</Text>
+                <Text style={[styles.infoText, { color: colors.text }]}>{storeName}</Text>
               </View>
             )}
             {purchaseDate && (
               <View style={styles.infoRow}>
-                <Ionicons name="calendar-outline" size={16} color="#6b7280" />
-                <Text style={styles.infoText}>{purchaseDate}</Text>
+                <Ionicons name="calendar-outline" size={16} color={colors.textSecondary} />
+                <Text style={[styles.infoText, { color: colors.text }]}>{purchaseDate}</Text>
               </View>
             )}
           </View>
         )}
 
-        <Text style={styles.previewSectionTitle}>
+        <Text style={[styles.previewSectionTitle, { color: colors.text }]}>
           인식된 품목 ({items.length}개)
         </Text>
 
@@ -242,8 +246,8 @@ function PreviewScreen({
       </ScrollView>
 
       {/* 하단 액션 버튼 */}
-      <View style={styles.bottomActions}>
-        <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+      <View style={[styles.bottomActions, { backgroundColor: colors.bgCard, borderTopColor: colors.divider }]}>
+        <TouchableOpacity style={[styles.retryButton, { backgroundColor: colors.bg }]} onPress={onRetry}>
           <Ionicons name="refresh-outline" size={20} color="#6b7280" />
           <Text style={styles.retryButtonText}>다시 스캔</Text>
         </TouchableOpacity>
@@ -300,21 +304,22 @@ function ReceiptItemCard({
     setEditing(false);
   };
 
+  const { colors } = useThemeStore();
   return (
-    <View style={styles.itemCard}>
+    <View style={[styles.itemCard, { backgroundColor: colors.bgCard }]}>
       <View style={styles.itemHeader}>
         <Text style={styles.itemEmoji}>{emoji}</Text>
         <View style={styles.itemInfo}>
           {editing ? (
             <View style={styles.editRow}>
               <TextInput
-                style={styles.editInput}
+                style={[styles.editInput, { borderColor: colors.border, color: colors.text }]}
                 value={editName}
                 onChangeText={setEditName}
                 placeholder="품목명"
               />
               <TextInput
-                style={[styles.editInput, { width: 50, textAlign: 'center' }]}
+                style={[styles.editInput, { width: 50, textAlign: 'center', borderColor: colors.border, color: colors.text }]}
                 value={editQuantity}
                 onChangeText={setEditQuantity}
                 keyboardType="numeric"
@@ -322,8 +327,8 @@ function ReceiptItemCard({
             </View>
           ) : (
             <>
-              <Text style={styles.itemName}>{item.name}</Text>
-              <Text style={styles.itemMeta}>
+              <Text style={[styles.itemName, { color: colors.text }]}>{item.name}</Text>
+              <Text style={[styles.itemMeta, { color: colors.textSecondary }]}>
                 {item.quantity}
                 {item.unit} | {CATEGORY_LABELS[item.category]} |{' '}
                 유통기한 {item.defaultShelfLifeDays}일
@@ -357,11 +362,11 @@ function ReceiptItemCard({
         </View>
       </View>
 
-      <View style={styles.itemDates}>
-        <Text style={styles.dateLabel}>
+      <View style={[styles.itemDates, { borderTopColor: colors.divider }]}>
+        <Text style={[styles.dateLabel, { color: colors.textTertiary }]}>
           구매: {item.purchasedAt}
         </Text>
-        <Text style={styles.dateLabel}>
+        <Text style={[styles.dateLabel, { color: colors.textTertiary }]}>
           유통기한: {item.expiresAt}
         </Text>
       </View>

@@ -4,24 +4,26 @@ import { useLocalSearchParams, router } from 'expo-router';
 import { FoodForm } from '../../components/FoodForm';
 import { useFoodItem, useUpdateFoodItem } from '../../hooks/useFoodItems';
 import type { UpdateFoodItemDto } from '@freshbox/types';
+import { useThemeStore } from '../../store/theme.store';
 
 export default function EditScreen() {
+  const { colors } = useThemeStore();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: item, isLoading } = useFoodItem(id);
   const updateMutation = useUpdateFoodItem();
 
   if (isLoading) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#22c55e" />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
 
   if (!item) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <Text className="text-gray-500">식재료를 찾을 수 없어요</Text>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg }}>
+        <Text style={{ color: colors.textTertiary }}>식재료를 찾을 수 없어요</Text>
       </View>
     );
   }

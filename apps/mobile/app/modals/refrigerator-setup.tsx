@@ -18,6 +18,7 @@ import {
   useDeleteRefrigerator,
 } from '../../hooks/useRefrigerators';
 import { getZonesForType } from '../../components/refrigerator/fridgeConfigs';
+import { useThemeStore } from '../../store/theme.store';
 
 const TYPES: RefrigeratorType[] = ['STANDARD', 'SIDE_BY_SIDE', 'FRENCH_DOOR', 'FREEZER', 'KIMCHI'];
 
@@ -32,6 +33,7 @@ const PRESET_COLORS = [
 ];
 
 export default function RefrigeratorSetupModal() {
+  const { colors } = useThemeStore();
   const params = useLocalSearchParams<{ id?: string; name?: string; type?: string; color?: string }>();
   const isEdit = !!params.id;
 
@@ -120,35 +122,36 @@ export default function RefrigeratorSetupModal() {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f9fafb' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <ScrollView contentContainerStyle={{ padding: 20, gap: 20 }}>
         {/* 헤더 */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ fontSize: 20, fontWeight: '700', color: '#111827' }}>
+          <Text style={{ fontSize: 20, fontWeight: '700', color: colors.text }}>
             {isEdit ? '냉장고 수정' : '냉장고 등록'}
           </Text>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="close" size={22} color="#6b7280" />
+            <Ionicons name="close" size={22} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
         {/* 이름 */}
         <View>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 6 }}>
-            냉장고 이름 <Text style={{ color: '#ef4444' }}>*</Text>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 6 }}>
+            냉장고 이름 <Text style={{ color: colors.danger }}>*</Text>
           </Text>
           <TextInput
             style={{
-              backgroundColor: '#fff',
+              backgroundColor: colors.bgCard,
               borderWidth: 1,
-              borderColor: '#e5e7eb',
+              borderColor: colors.border,
               borderRadius: 12,
               paddingHorizontal: 16,
               paddingVertical: 12,
               fontSize: 16,
-              color: '#111827',
+              color: colors.text,
             }}
             placeholder="예: 거실 냉장고, 김치냉장고"
+            placeholderTextColor={colors.textTertiary}
             value={name}
             onChangeText={setName}
           />
@@ -156,7 +159,7 @@ export default function RefrigeratorSetupModal() {
 
         {/* 타입 선택 */}
         <View>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 }}>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 }}>
             냉장고 타입
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -169,15 +172,15 @@ export default function RefrigeratorSetupModal() {
                   paddingVertical: 8,
                   borderRadius: 20,
                   borderWidth: 2,
-                  borderColor: type === t ? '#3b82f6' : '#e5e7eb',
-                  backgroundColor: type === t ? '#eff6ff' : '#fff',
+                  borderColor: type === t ? colors.info : colors.border,
+                  backgroundColor: type === t ? colors.infoLight : colors.bgCard,
                 }}
               >
                 <Text
                   style={{
                     fontSize: 13,
                     fontWeight: '600',
-                    color: type === t ? '#1d4ed8' : '#6b7280',
+                    color: type === t ? colors.info : colors.textSecondary,
                   }}
                 >
                   {REFRIGERATOR_TYPE_LABELS[t]}
@@ -189,7 +192,7 @@ export default function RefrigeratorSetupModal() {
 
         {/* 색상 선택 */}
         <View>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 }}>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 }}>
             냉장고 색상
           </Text>
           <View style={{ flexDirection: 'row', gap: 10, flexWrap: 'wrap' }}>
@@ -203,7 +206,7 @@ export default function RefrigeratorSetupModal() {
                   borderRadius: 20,
                   backgroundColor: c,
                   borderWidth: color === c ? 3 : 1.5,
-                  borderColor: color === c ? '#3b82f6' : '#d1d5db',
+                  borderColor: color === c ? colors.info : colors.border,
                 }}
               />
             ))}
@@ -212,22 +215,22 @@ export default function RefrigeratorSetupModal() {
 
         {/* 구역 설정 */}
         <View>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#374151', marginBottom: 8 }}>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 }}>
             구역 설정
           </Text>
 
           <View
             style={{
-              backgroundColor: '#fff',
+              backgroundColor: colors.bgCard,
               borderRadius: 12,
               borderWidth: 1,
-              borderColor: '#e5e7eb',
+              borderColor: colors.border,
               overflow: 'hidden',
             }}
           >
             {customZones.map((zone, idx) => (
               <View key={zone.key}>
-                {idx > 0 && <View style={{ height: 1, backgroundColor: '#f3f4f6' }} />}
+                {idx > 0 && <View style={{ height: 1, backgroundColor: colors.divider }} />}
 
                 <View style={{ padding: 12 }}>
                   {/* 구역 헤더 행 */}
@@ -239,9 +242,9 @@ export default function RefrigeratorSetupModal() {
                           flex: 1,
                           fontSize: 14,
                           fontWeight: '600',
-                          color: '#111827',
+                          color: colors.text,
                           borderBottomWidth: 1,
-                          borderBottomColor: '#3b82f6',
+                          borderBottomColor: colors.info,
                           paddingVertical: 2,
                         }}
                         value={zone.label}
@@ -250,28 +253,28 @@ export default function RefrigeratorSetupModal() {
                         autoFocus
                       />
                     ) : (
-                      <Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: '#111827' }}>
+                      <Text style={{ flex: 1, fontSize: 14, fontWeight: '600', color: colors.text }}>
                         {zone.label}
                       </Text>
                     )}
 
                     {/* 층수 조절 */}
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Text style={{ fontSize: 12, color: '#6b7280' }}>층수</Text>
+                      <Text style={{ fontSize: 12, color: colors.textSecondary }}>층수</Text>
                       <TouchableOpacity
                         onPress={() => updateZoneShelves(idx, -1)}
                         style={{
                           width: 26,
                           height: 26,
                           borderRadius: 13,
-                          backgroundColor: '#f3f4f6',
+                          backgroundColor: colors.bg,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <Text style={{ fontSize: 16, color: '#374151', lineHeight: 18 }}>−</Text>
+                        <Text style={{ fontSize: 16, color: colors.text, lineHeight: 18 }}>−</Text>
                       </TouchableOpacity>
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#111827', minWidth: 16, textAlign: 'center' }}>
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text, minWidth: 16, textAlign: 'center' }}>
                         {zone.shelves}
                       </Text>
                       <TouchableOpacity
@@ -280,12 +283,12 @@ export default function RefrigeratorSetupModal() {
                           width: 26,
                           height: 26,
                           borderRadius: 13,
-                          backgroundColor: '#f3f4f6',
+                          backgroundColor: colors.bg,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <Text style={{ fontSize: 16, color: '#374151', lineHeight: 18 }}>+</Text>
+                        <Text style={{ fontSize: 16, color: colors.text, lineHeight: 18 }}>+</Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -339,12 +342,12 @@ export default function RefrigeratorSetupModal() {
                 justifyContent: 'center',
                 paddingVertical: 12,
                 borderTopWidth: 1,
-                borderTopColor: '#f3f4f6',
+                borderTopColor: colors.divider,
                 gap: 6,
               }}
             >
-              <Text style={{ fontSize: 18, color: '#3b82f6' }}>+</Text>
-              <Text style={{ fontSize: 13, fontWeight: '600', color: '#3b82f6' }}>구역 추가</Text>
+              <Text style={{ fontSize: 18, color: colors.info }}>+</Text>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.info }}>구역 추가</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -355,16 +358,16 @@ export default function RefrigeratorSetupModal() {
             borderWidth: 4,
             borderColor: color,
             borderRadius: 16,
-            backgroundColor: '#f9fafb',
+            backgroundColor: colors.bgSecondary,
             padding: 16,
             alignItems: 'center',
           }}
         >
-          <Ionicons name="snow-outline" size={28} color="#3b82f6" style={{ marginBottom: 4 }} />
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#374151' }}>
+          <Ionicons name="snow-outline" size={28} color={colors.info} style={{ marginBottom: 4 }} />
+          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>
             {name || '냉장고 이름'}
           </Text>
-          <Text style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
+          <Text style={{ fontSize: 12, color: colors.textTertiary, marginTop: 2 }}>
             {REFRIGERATOR_TYPE_LABELS[type]} · 구역 {customZones.length}개
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
@@ -372,13 +375,13 @@ export default function RefrigeratorSetupModal() {
               <View
                 key={z.key}
                 style={{
-                  backgroundColor: '#eff6ff',
+                  backgroundColor: colors.infoLight,
                   borderRadius: 8,
                   paddingHorizontal: 8,
                   paddingVertical: 3,
                 }}
               >
-                <Text style={{ fontSize: 11, color: '#1d4ed8' }}>
+                <Text style={{ fontSize: 11, color: colors.info }}>
                   {z.label} ({z.shelves}층)
                 </Text>
               </View>
@@ -391,13 +394,13 @@ export default function RefrigeratorSetupModal() {
           onPress={handleSave}
           disabled={isLoading || !name.trim()}
           style={{
-            backgroundColor: isLoading || !name.trim() ? '#d1d5db' : '#3b82f6',
+            backgroundColor: isLoading || !name.trim() ? colors.border : colors.info,
             borderRadius: 14,
             paddingVertical: 16,
             alignItems: 'center',
           }}
         >
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+          <Text style={{ color: colors.textInverse, fontSize: 16, fontWeight: '700' }}>
             {isLoading ? '저장 중...' : (isEdit ? '수정 완료' : '냉장고 등록')}
           </Text>
         </TouchableOpacity>

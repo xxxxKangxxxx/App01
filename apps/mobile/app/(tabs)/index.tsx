@@ -17,28 +17,30 @@ import { CATEGORY_LABELS } from '@freshbox/types';
 import type { FoodItem } from '@freshbox/types';
 import { getFoodEmoji } from '../../constants/foodEmoji';
 import { getDaysUntilExpiry } from '../../utils/date';
+import { useThemeStore } from '../../store/theme.store';
 
 // ─── 온보딩 화면 ─────────────────────────────────────────────────
 function OnboardingView() {
+  const { colors } = useThemeStore();
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
-      <Ionicons name="snow-outline" size={64} color="#3b82f6" style={{ marginBottom: 16 }} />
-      <Text style={{ fontSize: 22, fontWeight: '700', color: '#111827', marginBottom: 8, textAlign: 'center' }}>
+      <Ionicons name="snow-outline" size={64} color={colors.info} style={{ marginBottom: 16 }} />
+      <Text style={{ fontSize: 22, fontWeight: '700', color: colors.text, marginBottom: 8, textAlign: 'center' }}>
         첫 냉장고를 등록해보세요
       </Text>
-      <Text style={{ fontSize: 14, color: '#9ca3af', textAlign: 'center', marginBottom: 32, lineHeight: 22 }}>
+      <Text style={{ fontSize: 14, color: colors.textTertiary, textAlign: 'center', marginBottom: 32, lineHeight: 22 }}>
         냉장고를 등록하면{'\n'}식재료를 정확한 위치에 관리할 수 있어요
       </Text>
       <TouchableOpacity
         onPress={() => router.push('/modals/refrigerator-setup')}
         style={{
-          backgroundColor: '#3b82f6',
+          backgroundColor: colors.info,
           borderRadius: 14,
           paddingHorizontal: 32,
           paddingVertical: 14,
         }}
       >
-        <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>냉장고 등록하기</Text>
+        <Text style={{ color: colors.textInverse, fontSize: 16, fontWeight: '700' }}>냉장고 등록하기</Text>
       </TouchableOpacity>
     </View>
   );
@@ -46,6 +48,7 @@ function OnboardingView() {
 
 // ─── 통계 요약 카드 ──────────────────────────────────────────────
 function StatsSummary({ items }: { items: FoodItem[] }) {
+  const { colors } = useThemeStore();
   const totalCount = items.length;
   const expiredCount = items.filter((i) => {
     if (!i.expiresAt) return false;
@@ -63,11 +66,11 @@ function StatsSummary({ items }: { items: FoodItem[] }) {
       style={{
         flexDirection: 'row',
         marginHorizontal: 16,
-        backgroundColor: '#fff',
+        backgroundColor: colors.bgCard,
         borderRadius: 16,
         padding: 16,
         borderWidth: 1,
-        borderColor: '#e5e7eb',
+        borderColor: colors.border,
         gap: 8,
       }}
     >
@@ -126,6 +129,7 @@ function StatItem({
   countColor: string;
   onPress?: () => void;
 }) {
+  const { colors } = useThemeStore();
   const content = (
     <View style={{ flex: 1, alignItems: 'center', gap: 6 }}>
       <View
@@ -141,7 +145,7 @@ function StatItem({
         <Ionicons name={icon} size={20} color={iconColor} />
       </View>
       <Text style={{ fontSize: 20, fontWeight: '800', color: countColor }}>{count}</Text>
-      <Text style={{ fontSize: 11, color: '#9ca3af', fontWeight: '500' }}>{label}</Text>
+      <Text style={{ fontSize: 11, color: colors.textTertiary, fontWeight: '500' }}>{label}</Text>
     </View>
   );
 
@@ -208,6 +212,7 @@ function UnclassifiedChip({ item }: { item: FoodItem }) {
 
 // ─── 최근 추가 아이템 ────────────────────────────────────────────
 function RecentItem({ item }: { item: FoodItem }) {
+  const { colors } = useThemeStore();
   const days = item.expiresAt ? getDaysUntilExpiry(item.expiresAt) : null;
   const dLabel = days === null ? '' : days < 0 ? '만료' : days === 0 ? 'D-day' : `D-${days}`;
   const dColor = days === null ? '#9ca3af' : days < 0 ? '#9ca3af' : days === 0 ? '#ef4444' : days <= 3 ? '#f97316' : days <= 7 ? '#eab308' : '#22c55e';
@@ -232,24 +237,24 @@ function RecentItem({ item }: { item: FoodItem }) {
       style={{
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#fff',
+        backgroundColor: colors.bgCard,
         borderRadius: 12,
         paddingHorizontal: 12,
         paddingVertical: 10,
         borderWidth: 1,
-        borderColor: '#f3f4f6',
+        borderColor: colors.borderLight,
       }}
     >
       <Text style={{ fontSize: 22, marginRight: 10 }}>
         {getFoodEmoji(item.name, item.category)}
       </Text>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: '#111827' }}>{item.name}</Text>
+        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.text }}>{item.name}</Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-          <Text style={{ fontSize: 11, color: '#9ca3af' }}>
+          <Text style={{ fontSize: 11, color: colors.textTertiary }}>
             {CATEGORY_LABELS[item.category]}
           </Text>
-          <Text style={{ fontSize: 11, color: '#d1d5db' }}>
+          <Text style={{ fontSize: 11, color: colors.border }}>
             {timeAgo}
           </Text>
         </View>
@@ -272,6 +277,7 @@ function RecentItem({ item }: { item: FoodItem }) {
 
 // ─── 홈 화면 ─────────────────────────────────────────────────────
 export default function HomeScreen() {
+  const { colors } = useThemeStore();
   const { data: items = [], isLoading: itemsLoading, refetch, isRefetching } = useFoodItems({ isConsumed: false });
   const { data: refrigerators = [], isLoading: fridgesLoading } = useRefrigerators();
 
@@ -286,17 +292,17 @@ export default function HomeScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={colors.info} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f3f4f6' }} edges={['bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['bottom']}>
       <ScrollView
         refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#3b82f6" />
+          <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.info} />
         }
         contentContainerStyle={{ paddingBottom: 32 }}
       >
@@ -311,21 +317,21 @@ export default function HomeScreen() {
             paddingBottom: 12,
           }}
         >
-          <Text style={{ fontSize: 22, fontWeight: '800', color: '#111827' }}>내 냉장고</Text>
+          <Text style={{ fontSize: 22, fontWeight: '800', color: colors.text }}>내 냉장고</Text>
           <TouchableOpacity
             onPress={() => router.push('/modals/refrigerator-setup')}
             style={{
               width: 36,
               height: 36,
               borderRadius: 18,
-              backgroundColor: '#fff',
+              backgroundColor: colors.bgCard,
               borderWidth: 1,
-              borderColor: '#e5e7eb',
+              borderColor: colors.border,
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Ionicons name="add" size={22} color="#6b7280" />
+            <Ionicons name="add" size={22} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
@@ -340,8 +346,8 @@ export default function HomeScreen() {
             {/* ── 냉장고 카드 가로 스크롤 ── */}
             <View>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, marginBottom: 8 }}>
-                <Text style={{ fontSize: 15, fontWeight: '700', color: '#374151' }}>냉장고</Text>
-                <Text style={{ fontSize: 12, color: '#9ca3af' }}>{refrigerators.length}대</Text>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text }}>냉장고</Text>
+                <Text style={{ fontSize: 12, color: colors.textTertiary }}>{refrigerators.length}대</Text>
               </View>
               <ScrollView
                 horizontal
@@ -364,16 +370,16 @@ export default function HomeScreen() {
               {recentItems.length > 0 && (
                 <View
                   style={{
-                    backgroundColor: '#fff',
+                    backgroundColor: colors.bgCard,
                     borderRadius: 16,
                     padding: 14,
                     borderWidth: 1,
-                    borderColor: '#e5e7eb',
+                    borderColor: colors.border,
                   }}
                 >
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 10 }}>
-                    <Ionicons name="time-outline" size={18} color="#6b7280" />
-                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>최근 추가</Text>
+                    <Ionicons name="time-outline" size={18} color={colors.textSecondary} />
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text }}>최근 추가</Text>
                   </View>
                   <View style={{ gap: 6 }}>
                     {recentItems.map((item) => (
@@ -387,11 +393,11 @@ export default function HomeScreen() {
               {unclassifiedItems.length > 0 && (
                 <View
                   style={{
-                    backgroundColor: '#fff',
+                    backgroundColor: colors.bgCard,
                     borderRadius: 16,
                     padding: 14,
                     borderWidth: 1,
-                    borderColor: '#e5e7eb',
+                    borderColor: colors.border,
                   }}
                 >
                   <View
@@ -403,10 +409,10 @@ export default function HomeScreen() {
                     }}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                      <Ionicons name="cube-outline" size={18} color="#6b7280" />
-                      <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151' }}>미분류</Text>
+                      <Ionicons name="cube-outline" size={18} color={colors.textSecondary} />
+                      <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text }}>미분류</Text>
                     </View>
-                    <Text style={{ fontSize: 12, color: '#9ca3af' }}>{unclassifiedItems.length}개</Text>
+                    <Text style={{ fontSize: 12, color: colors.textTertiary }}>{unclassifiedItems.length}개</Text>
                   </View>
                   <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
                     {unclassifiedItems.map((item) => (
@@ -419,9 +425,9 @@ export default function HomeScreen() {
               {/* ── 아이템 없을 때 ── */}
               {items.length === 0 && (
                 <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-                  <Ionicons name="snow-outline" size={48} color="#d1d5db" style={{ marginBottom: 12 }} />
-                  <Text style={{ fontSize: 16, fontWeight: '600', color: '#9ca3af' }}>냉장고가 비어있어요</Text>
-                  <Text style={{ fontSize: 13, color: '#d1d5db', marginTop: 4 }}>
+                  <Ionicons name="snow-outline" size={48} color={colors.border} style={{ marginBottom: 12 }} />
+                  <Text style={{ fontSize: 16, fontWeight: '600', color: colors.textTertiary }}>냉장고가 비어있어요</Text>
+                  <Text style={{ fontSize: 13, color: colors.border, marginTop: 4 }}>
                     + 버튼으로 식재료를 추가해보세요
                   </Text>
                 </View>

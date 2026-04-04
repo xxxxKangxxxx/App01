@@ -10,8 +10,10 @@ import { REFRIGERATOR_TYPE_LABELS } from '@freshbox/types';
 import type { FoodItem } from '@freshbox/types';
 import type { ZoneConfig } from '../../components/refrigerator/fridgeConfigs';
 import { getDaysUntilExpiry } from '../../utils/date';
+import { useThemeStore } from '../../store/theme.store';
 
 function SummaryCard({ items }: { items: FoodItem[] }) {
+  const { colors } = useThemeStore();
   let expired = 0;
   let expiring = 0;
   let safe = 0;
@@ -35,7 +37,7 @@ function SummaryCard({ items }: { items: FoodItem[] }) {
     <View
       style={{
         flexDirection: 'row',
-        backgroundColor: '#fff',
+        backgroundColor: colors.bgCard,
         borderRadius: 14,
         padding: 14,
         gap: 8,
@@ -65,16 +67,18 @@ function StatBox({
   label: string;
   value: number;
 }) {
+  const { colors } = useThemeStore();
   return (
     <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
       <Ionicons name={icon as any} size={18} color={color} />
-      <Text style={{ fontSize: 18, fontWeight: '800', color: '#111827' }}>{value}</Text>
-      <Text style={{ fontSize: 10, color: '#9ca3af', fontWeight: '500' }}>{label}</Text>
+      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text }}>{value}</Text>
+      <Text style={{ fontSize: 10, color: colors.textTertiary, fontWeight: '500' }}>{label}</Text>
     </View>
   );
 }
 
 export default function FridgeDetailModal() {
+  const { colors } = useThemeStore();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { data: refrigerators = [], isLoading: fridgesLoading } = useRefrigerators();
   const { data: items = [], isLoading: itemsLoading } = useFoodItems({ isConsumed: false });
@@ -97,16 +101,16 @@ export default function FridgeDetailModal() {
 
   if (fridgesLoading || itemsLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={colors.info} />
       </SafeAreaView>
     );
   }
 
   if (!refrigerator) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' }}>
-        <Text style={{ color: '#9ca3af' }}>냉장고를 찾을 수 없습니다.</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <Text style={{ color: colors.textTertiary }}>냉장고를 찾을 수 없습니다.</Text>
       </SafeAreaView>
     );
   }
@@ -114,7 +118,7 @@ export default function FridgeDetailModal() {
   const fridgeItems = items.filter((i) => i.refrigeratorId === refrigerator.id);
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       {/* 헤더 */}
       <View
         style={{
@@ -123,24 +127,24 @@ export default function FridgeDetailModal() {
           justifyContent: 'space-between',
           paddingHorizontal: 16,
           paddingVertical: 12,
-          backgroundColor: '#fff',
+          backgroundColor: colors.bgCard,
           borderBottomWidth: 1,
-          borderBottomColor: '#e5e7eb',
+          borderBottomColor: colors.border,
         }}
       >
         <TouchableOpacity onPress={() => router.back()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Ionicons name="close" size={22} color="#6b7280" />
+          <Ionicons name="close" size={22} color={colors.textSecondary} />
         </TouchableOpacity>
         <View style={{ alignItems: 'center' }}>
-          <Text style={{ fontSize: 16, fontWeight: '700', color: '#111827' }}>
+          <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text }}>
             {refrigerator.name}
           </Text>
-          <Text style={{ fontSize: 11, color: '#9ca3af' }}>
+          <Text style={{ fontSize: 11, color: colors.textTertiary }}>
             {REFRIGERATOR_TYPE_LABELS[refrigerator.type]}
           </Text>
         </View>
         <TouchableOpacity onPress={handleEdit} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Text style={{ fontSize: 14, color: '#3b82f6', fontWeight: '600' }}>편집</Text>
+          <Text style={{ fontSize: 14, color: colors.info, fontWeight: '600' }}>편집</Text>
         </TouchableOpacity>
       </View>
 

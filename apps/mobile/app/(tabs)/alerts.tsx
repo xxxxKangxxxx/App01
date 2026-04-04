@@ -18,6 +18,7 @@ import { CATEGORY_LABELS } from '@freshbox/types';
 import type { FoodItem } from '@freshbox/types';
 import { getFoodEmoji } from '../../constants/foodEmoji';
 import { getDaysUntilExpiry } from '../../utils/date';
+import { useThemeStore } from '../../store/theme.store';
 
 function formatExpiryDate(expiresAt: string): string {
   const d = new Date(expiresAt);
@@ -26,6 +27,7 @@ function formatExpiryDate(expiresAt: string): string {
 
 // ─── 스와이프 카드 ───────────────────────────────────────────────
 function SwipeableAlertCard({ item }: { item: FoodItem }) {
+  const { colors } = useThemeStore();
   const deleteMutation = useDeleteFoodItem();
   const updateMutation = useUpdateFoodItem();
   const translateX = useRef(new Animated.Value(0)).current;
@@ -116,13 +118,13 @@ function SwipeableAlertCard({ item }: { item: FoodItem }) {
           onPress={() => router.push(`/(tabs)/edit?id=${item.id}`)}
           activeOpacity={0.8}
           style={{
-            backgroundColor: '#fff',
+            backgroundColor: colors.bgCard,
             borderRadius: 14,
             padding: 14,
             flexDirection: 'row',
             alignItems: 'center',
             borderWidth: 1,
-            borderColor: '#f3f4f6',
+            borderColor: colors.borderLight,
           }}
         >
           {/* D-day 뱃지 */}
@@ -149,15 +151,15 @@ function SwipeableAlertCard({ item }: { item: FoodItem }) {
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Text style={{ fontSize: 18 }}>{getFoodEmoji(item.name, item.category)}</Text>
-              <Text style={{ fontSize: 15, fontWeight: '600', color: '#111827' }} numberOfLines={1}>
+              <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }} numberOfLines={1}>
                 {item.name}
               </Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-              <Text style={{ fontSize: 11, color: '#9ca3af', backgroundColor: '#f3f4f6', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 1 }}>
+              <Text style={{ fontSize: 11, color: colors.textTertiary, backgroundColor: colors.bg, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 1 }}>
                 {CATEGORY_LABELS[item.category]}
               </Text>
-              <Text style={{ fontSize: 11, color: '#9ca3af' }}>
+              <Text style={{ fontSize: 11, color: colors.textTertiary }}>
                 {item.quantity} {item.unit}
               </Text>
             </View>
@@ -212,6 +214,7 @@ function SectionHeader({
   title: string;
   count: number;
 }) {
+  const { colors } = useThemeStore();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 10, marginTop: 4 }}>
       <View
@@ -226,7 +229,7 @@ function SectionHeader({
       >
         <Ionicons name={icon} size={15} color={iconColor} />
       </View>
-      <Text style={{ fontSize: 15, fontWeight: '700', color: '#111827', flex: 1 }}>{title}</Text>
+      <Text style={{ fontSize: 15, fontWeight: '700', color: colors.text, flex: 1 }}>{title}</Text>
       <View
         style={{
           backgroundColor: bgColor,
@@ -243,6 +246,7 @@ function SectionHeader({
 
 // ─── 메인 화면 ───────────────────────────────────────────────────
 export default function AlertsScreen() {
+  const { colors } = useThemeStore();
   const { data: allItems = [], isLoading, refetch, isRefetching } = useFoodItems({ isConsumed: false });
 
   const today = new Date();
@@ -267,16 +271,16 @@ export default function AlertsScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#f3f4f6', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator size="large" color="#3b82f6" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator size="large" color={colors.info} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f3f4f6' }} edges={['bottom']}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['bottom']}>
       <ScrollView
-        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor="#3b82f6" />}
+        refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={colors.info} />}
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
       >
         {/* 요약 */}
@@ -284,12 +288,12 @@ export default function AlertsScreen() {
           <View
             style={{
               flexDirection: 'row',
-              backgroundColor: '#fff',
+              backgroundColor: colors.bgCard,
               borderRadius: 14,
               padding: 14,
               marginBottom: 16,
               borderWidth: 1,
-              borderColor: '#e5e7eb',
+              borderColor: colors.border,
               gap: 8,
             }}
           >
@@ -325,11 +329,11 @@ export default function AlertsScreen() {
           <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, marginBottom: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Ionicons name="arrow-forward" size={12} color="#22c55e" />
-              <Text style={{ fontSize: 10, color: '#9ca3af' }}>밀어서 소비</Text>
+              <Text style={{ fontSize: 10, color: colors.textTertiary }}>밀어서 소비</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Ionicons name="arrow-back" size={12} color="#ef4444" />
-              <Text style={{ fontSize: 10, color: '#9ca3af' }}>밀어서 삭제</Text>
+              <Text style={{ fontSize: 10, color: colors.textTertiary }}>밀어서 삭제</Text>
             </View>
           </View>
         )}
@@ -378,10 +382,10 @@ export default function AlertsScreen() {
         {totalAlerts === 0 && (
           <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 80 }}>
             <Ionicons name="checkmark-circle-outline" size={56} color="#22c55e" style={{ marginBottom: 16 }} />
-            <Text style={{ fontSize: 17, fontWeight: '600', color: '#374151' }}>
+            <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text }}>
               임박한 식재료가 없어요
             </Text>
-            <Text style={{ fontSize: 13, color: '#9ca3af', marginTop: 6, textAlign: 'center', lineHeight: 20 }}>
+            <Text style={{ fontSize: 13, color: colors.textTertiary, marginTop: 6, textAlign: 'center', lineHeight: 20 }}>
               냉장고가 신선하게 관리되고 있어요!
             </Text>
           </View>

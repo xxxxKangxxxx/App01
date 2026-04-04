@@ -5,6 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { useURL } from 'expo-linking';
 import { router } from 'expo-router';
 import { useAuthStore } from '../../store/auth.store';
+import { useThemeStore } from '../../store/theme.store';
 import { API_BASE_URL } from '../../constants/api';
 
 WebBrowser.maybeCompleteAuthSession();
@@ -18,6 +19,7 @@ const OAUTH_URLS = {
 export default function LoginScreen() {
   const url = useURL();
   const { setTokens } = useAuthStore();
+  const { colors } = useThemeStore();
 
   // 딥링크로 토큰 받기 (freshbox://auth/callback?accessToken=...&refreshToken=...)
   useEffect(() => {
@@ -52,55 +54,55 @@ export default function LoginScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white">
+    <View style={{ flex: 1, backgroundColor: colors.bgCard }}>
       {/* 상단 브랜딩 */}
-      <View className="flex-1 items-center justify-center px-8">
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
         <Image
           source={require('../../assets/logo.png')}
-          className="w-28 h-28 mb-6"
+          style={{ width: 112, height: 112, marginBottom: 24 }}
           resizeMode="contain"
         />
-        <Text className="text-3xl font-bold text-gray-900 mb-2">손안의냉장고</Text>
-        <Text className="text-base text-gray-500 text-center">
+        <Text style={{ fontSize: 30, fontWeight: '700', color: colors.text, marginBottom: 8 }}>손안의냉장고</Text>
+        <Text style={{ fontSize: 16, color: colors.textSecondary, textAlign: 'center' }}>
           냉장고 식재료를 스마트하게 관리하세요
         </Text>
       </View>
 
       {/* 소셜 로그인 버튼 */}
-      <View className="px-6 pb-12 gap-3">
-        <Text className="text-sm text-gray-400 text-center mb-2">
+      <View style={{ paddingHorizontal: 24, paddingBottom: 48, gap: 12 }}>
+        <Text style={{ fontSize: 14, color: colors.textTertiary, textAlign: 'center', marginBottom: 8 }}>
           SNS 계정으로 간편 로그인
         </Text>
 
         {/* 카카오 */}
         <TouchableOpacity
-          className="flex-row items-center justify-center bg-[#FEE500] rounded-2xl py-4 gap-3"
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FEE500', borderRadius: 16, paddingVertical: 16, gap: 12 }}
           onPress={() => handleOAuth('kakao')}
         >
           <Ionicons name="chatbubble" size={20} color="#3C1E1E" />
-          <Text className="text-[#3C1E1E] text-base font-semibold">
+          <Text style={{ color: '#3C1E1E', fontSize: 16, fontWeight: '600' }}>
             카카오로 로그인
           </Text>
         </TouchableOpacity>
 
         {/* 네이버 */}
         <TouchableOpacity
-          className="flex-row items-center justify-center bg-[#03C75A] rounded-2xl py-4 gap-3"
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#03C75A', borderRadius: 16, paddingVertical: 16, gap: 12 }}
           onPress={() => handleOAuth('naver')}
         >
-          <Text className="text-white text-lg font-bold">N</Text>
-          <Text className="text-white text-base font-semibold">
+          <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>N</Text>
+          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
             네이버로 로그인
           </Text>
         </TouchableOpacity>
 
         {/* 구글 */}
         <TouchableOpacity
-          className="flex-row items-center justify-center bg-white border border-gray-200 rounded-2xl py-4 gap-3"
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border, borderRadius: 16, paddingVertical: 16, gap: 12 }}
           onPress={() => handleOAuth('google')}
         >
           <Ionicons name="logo-google" size={20} color="#4285F4" />
-          <Text className="text-gray-700 text-base font-semibold">
+          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>
             Google로 로그인
           </Text>
         </TouchableOpacity>

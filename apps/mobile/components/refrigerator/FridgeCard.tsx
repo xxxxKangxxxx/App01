@@ -5,6 +5,7 @@ import { REFRIGERATOR_TYPE_LABELS } from '@freshbox/types';
 import { Ionicons } from '@expo/vector-icons';
 import { getFoodEmoji } from '../../constants/foodEmoji';
 import { getDaysUntilExpiry } from '../../utils/date';
+import { useThemeStore } from '../../store/theme.store';
 
 function shadeColor(hex: string, amount: number): string {
   const num = parseInt(hex.replace('#', ''), 16);
@@ -21,6 +22,7 @@ interface FridgeCardProps {
 }
 
 export function FridgeCard({ refrigerator, items, onPress }: FridgeCardProps) {
+  const { colors } = useThemeStore();
   const color = refrigerator.color ?? '#e5e7eb';
   const border = shadeColor(color, -18);
   const handle = shadeColor(color, -45);
@@ -109,7 +111,7 @@ export function FridgeCard({ refrigerator, items, onPress }: FridgeCardProps) {
       {/* 정보 영역 */}
       <View
         style={{
-          backgroundColor: '#fff',
+          backgroundColor: colors.bgCard,
           paddingHorizontal: 10,
           paddingVertical: 8,
           borderTopWidth: 2,
@@ -120,12 +122,12 @@ export function FridgeCard({ refrigerator, items, onPress }: FridgeCardProps) {
         {/* 이름 + 타입 */}
         <View>
           <Text
-            style={{ fontSize: 13, fontWeight: '700', color: '#111827' }}
+            style={{ fontSize: 13, fontWeight: '700', color: colors.text }}
             numberOfLines={1}
           >
             {refrigerator.name}
           </Text>
-          <Text style={{ fontSize: 10, color: '#9ca3af', marginTop: 1 }}>
+          <Text style={{ fontSize: 10, color: colors.textTertiary, marginTop: 1 }}>
             {REFRIGERATOR_TYPE_LABELS[refrigerator.type]}
           </Text>
         </View>
@@ -139,18 +141,18 @@ export function FridgeCard({ refrigerator, items, onPress }: FridgeCardProps) {
               </Text>
             ))}
             {fridgeItems.length > 5 && (
-              <Text style={{ fontSize: 10, color: '#9ca3af', marginLeft: 2 }}>
+              <Text style={{ fontSize: 10, color: colors.textTertiary, marginLeft: 2 }}>
                 +{fridgeItems.length - 5}
               </Text>
             )}
           </View>
         ) : (
-          <Text style={{ fontSize: 11, color: '#d1d5db' }}>비어있음</Text>
+          <Text style={{ fontSize: 11, color: colors.border }}>비어있음</Text>
         )}
 
         {/* 하단 상태 표시 */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Text style={{ fontSize: 10, color: '#6b7280' }}>{fridgeItems.length}개</Text>
+          <Text style={{ fontSize: 10, color: colors.textSecondary }}>{fridgeItems.length}개</Text>
           {expiringCount > 0 && (
             <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff7ed', borderRadius: 6, paddingHorizontal: 4, paddingVertical: 1, gap: 2 }}>
               <Ionicons name="alert-circle" size={10} color="#f97316" />

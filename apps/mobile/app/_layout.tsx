@@ -4,6 +4,7 @@ import { Stack, router } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
 import { useAuthStore } from '../store/auth.store';
+import { useThemeStore } from '../store/theme.store';
 import { authApi } from '../services/api';
 
 Notifications.setNotificationHandler({
@@ -22,10 +23,12 @@ const queryClient = new QueryClient({
 
 function RootLayoutNav() {
   const { accessToken, isLoading, loadTokens } = useAuthStore();
+  const { loadTheme, colors } = useThemeStore();
 
   useEffect(() => {
     loadTokens();
-  }, [loadTokens]);
+    loadTheme();
+  }, [loadTokens, loadTheme]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -39,7 +42,12 @@ function RootLayoutNav() {
   }, [accessToken, isLoading]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.bg },
+      }}
+    >
       <Stack.Screen name="(auth)" options={{ headerShown: false }} />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen

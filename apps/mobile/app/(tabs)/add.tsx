@@ -5,8 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { FoodForm } from '../../components/FoodForm';
 import { useCreateFoodItem } from '../../hooks/useFoodItems';
 import type { CreateFoodItemDto } from '@freshbox/types';
+import { useThemeStore } from '../../store/theme.store';
 
 export default function AddScreen() {
+  const { colors } = useThemeStore();
   const createMutation = useCreateFoodItem();
 
   const handleSubmit = (data: CreateFoodItemDto) => {
@@ -18,7 +20,7 @@ export default function AddScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
+    <View style={{ flex: 1, backgroundColor: colors.bgCard }}>
       {/* 영수증 스캔 버튼 */}
       <TouchableOpacity
         onPress={() => router.push('/(tabs)/receipt-scan')}
@@ -30,20 +32,20 @@ export default function AddScreen() {
           marginTop: 12,
           marginBottom: 4,
           paddingVertical: 14,
-          backgroundColor: '#f0fdf4',
+          backgroundColor: colors.successLight,
           borderRadius: 12,
           borderWidth: 1,
-          borderColor: '#bbf7d0',
+          borderColor: colors.success,
           borderStyle: 'dashed',
         }}
       >
-        <Ionicons name="scan-outline" size={22} color="#16a34a" />
+        <Ionicons name="scan-outline" size={22} color={colors.success} />
         <Text
           style={{
             marginLeft: 8,
             fontSize: 15,
             fontWeight: '600',
-            color: '#16a34a',
+            color: colors.success,
           }}
         >
           영수증 스캔으로 추가
@@ -51,7 +53,7 @@ export default function AddScreen() {
         <Ionicons
           name="chevron-forward"
           size={18}
-          color="#16a34a"
+          color={colors.success}
           style={{ marginLeft: 4 }}
         />
       </TouchableOpacity>
@@ -64,17 +66,17 @@ export default function AddScreen() {
           marginVertical: 8,
         }}
       >
-        <View style={{ flex: 1, height: 1, backgroundColor: '#e5e7eb' }} />
+        <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
         <Text
           style={{
             marginHorizontal: 12,
             fontSize: 12,
-            color: '#9ca3af',
+            color: colors.textTertiary,
           }}
         >
           또는 직접 입력
         </Text>
-        <View style={{ flex: 1, height: 1, backgroundColor: '#e5e7eb' }} />
+        <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
       </View>
 
       <FoodForm

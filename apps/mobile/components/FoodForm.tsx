@@ -16,6 +16,7 @@ import { useRefrigerators } from '../hooks/useRefrigerators';
 import { getZonesForType, getShelvesForZone } from './refrigerator/fridgeConfigs';
 import { shelfLifeApi } from '../services/api';
 import { formatDate, parseDate, getDaysFromToday } from '../utils/date';
+import { useThemeStore } from '../store/theme.store';
 
 // ── 카테고리 아이콘 매핑 ──
 const CATEGORY_ICONS: Record<Category, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
@@ -51,20 +52,21 @@ const QUICK_PRESETS = [
 
 // ── 섹션 카드 ──
 function SectionCard({ title, icon, children }: { title: string; icon: keyof typeof Ionicons.glyphMap; children: React.ReactNode }) {
+  const { colors } = useThemeStore();
   return (
     <View
       style={{
-        backgroundColor: '#fff',
+        backgroundColor: colors.bgCard,
         borderRadius: 16,
         borderWidth: 1,
-        borderColor: '#e5e7eb',
+        borderColor: colors.border,
         padding: 14,
         gap: 14,
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <Ionicons name={icon} size={16} color="#6b7280" />
-        <Text style={{ fontSize: 14, fontWeight: '700', color: '#111827' }}>{title}</Text>
+        <Ionicons name={icon} size={16} color={colors.textSecondary} />
+        <Text style={{ fontSize: 14, fontWeight: '700', color: colors.text }}>{title}</Text>
       </View>
       {children}
     </View>
@@ -80,6 +82,7 @@ interface DateFieldProps {
 }
 
 function DateField({ label, value, onChange, showPresets = false }: DateFieldProps) {
+  const { colors } = useThemeStore();
   const [showPicker, setShowPicker] = useState(false);
   const parsed = parseDate(value);
   const daysFromToday = parsed ? getDaysFromToday(parsed) : null;
@@ -115,14 +118,14 @@ function DateField({ label, value, onChange, showPresets = false }: DateFieldPro
 
   return (
     <View style={{ flex: 1 }}>
-      <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>{label}</Text>
+      <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 6 }}>{label}</Text>
 
       <TouchableOpacity
         onPress={() => setShowPicker(true)}
         style={{
-          backgroundColor: '#f9fafb',
+          backgroundColor: colors.bgInput,
           borderWidth: 1,
-          borderColor: value ? '#3b82f6' : '#e5e7eb',
+          borderColor: value ? colors.info : colors.border,
           borderRadius: 12,
           paddingHorizontal: 14,
           paddingVertical: 12,
@@ -132,8 +135,8 @@ function DateField({ label, value, onChange, showPresets = false }: DateFieldPro
         }}
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Ionicons name={value ? 'calendar' : 'calendar-outline'} size={18} color={value ? '#3b82f6' : '#9ca3af'} />
-          <Text style={{ fontSize: 14, color: value ? '#111827' : '#9ca3af', fontWeight: value ? '600' : '400' }}>
+          <Ionicons name={value ? 'calendar' : 'calendar-outline'} size={18} color={value ? colors.info : colors.textTertiary} />
+          <Text style={{ fontSize: 14, color: value ? colors.text : colors.textTertiary, fontWeight: value ? '600' : '400' }}>
             {value || '날짜 선택'}
           </Text>
         </View>
@@ -162,11 +165,11 @@ function DateField({ label, value, onChange, showPresets = false }: DateFieldPro
                     paddingVertical: 5,
                     borderRadius: 16,
                     borderWidth: 1.5,
-                    borderColor: isSelected ? '#3b82f6' : '#e5e7eb',
-                    backgroundColor: isSelected ? '#eff6ff' : '#f9fafb',
+                    borderColor: isSelected ? colors.info : colors.border,
+                    backgroundColor: isSelected ? colors.infoLight : colors.bgInput,
                   }}
                 >
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: isSelected ? '#1d4ed8' : '#6b7280' }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: isSelected ? colors.info : colors.textSecondary }}>
                     {preset.label}
                   </Text>
                 </TouchableOpacity>
@@ -193,8 +196,8 @@ function DateField({ label, value, onChange, showPresets = false }: DateFieldPro
 
       {Platform.OS === 'ios' && showPicker && (
         <Modal transparent animationType="slide">
-          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(0,0,0,0.3)' }}>
-            <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 34 }}>
+          <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: colors.overlay }}>
+            <View style={{ backgroundColor: colors.bgCard, borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 34 }}>
               <View style={{
                 flexDirection: 'row',
                 justifyContent: 'space-between',
@@ -202,14 +205,14 @@ function DateField({ label, value, onChange, showPresets = false }: DateFieldPro
                 paddingHorizontal: 20,
                 paddingVertical: 14,
                 borderBottomWidth: 1,
-                borderBottomColor: '#f3f4f6',
+                borderBottomColor: colors.divider,
               }}>
                 <TouchableOpacity onPress={handleClear}>
-                  <Text style={{ fontSize: 15, color: '#ef4444', fontWeight: '600' }}>초기화</Text>
+                  <Text style={{ fontSize: 15, color: colors.danger, fontWeight: '600' }}>초기화</Text>
                 </TouchableOpacity>
-                <Text style={{ fontSize: 16, fontWeight: '700', color: '#111827' }}>{label}</Text>
+                <Text style={{ fontSize: 16, fontWeight: '700', color: colors.text }}>{label}</Text>
                 <TouchableOpacity onPress={() => setShowPicker(false)}>
-                  <Text style={{ fontSize: 15, color: '#3b82f6', fontWeight: '700' }}>완료</Text>
+                  <Text style={{ fontSize: 15, color: colors.info, fontWeight: '700' }}>완료</Text>
                 </TouchableOpacity>
               </View>
 
@@ -263,6 +266,7 @@ export function FoodForm({
   isLoading,
   submitLabel = '저장',
 }: FoodFormProps) {
+  const { colors } = useThemeStore();
   const [name, setName] = useState(initialValues?.name ?? '');
   const [category, setCategory] = useState<Category>(initialValues?.category ?? 'OTHER');
   const [quantity, setQuantity] = useState(String(initialValues?.quantity ?? 1));
@@ -383,28 +387,28 @@ export function FoodForm({
   };
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={{ padding: 16, gap: 14 }}>
 
         {/* ── 기본 정보 ── */}
         <SectionCard title="기본 정보" icon="create-outline">
           {/* 이름 + 유통기한 자동 제안 */}
           <View>
-            <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>
-              이름 <Text style={{ color: '#ef4444' }}>*</Text>
+            <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 6 }}>
+              이름 <Text style={{ color: colors.danger }}>*</Text>
             </Text>
             <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <TextInput
                 style={{
                   flex: 1,
-                  backgroundColor: '#f9fafb',
+                  backgroundColor: colors.bgInput,
                   borderWidth: 1,
-                  borderColor: suggestions.length > 0 ? '#3b82f6' : '#e5e7eb',
+                  borderColor: suggestions.length > 0 ? colors.info : colors.border,
                   borderRadius: 12,
                   paddingHorizontal: 16,
                   paddingVertical: 12,
                   paddingRight: isSearching ? 40 : 16,
-                  color: '#111827',
+                  color: colors.text,
                   fontSize: 15,
                 }}
                 placeholder="예: 당근, 닭가슴살"
@@ -427,10 +431,10 @@ export function FoodForm({
             {suggestions.length > 0 && (
               <View
                 style={{
-                  backgroundColor: '#f9fafb',
+                  backgroundColor: colors.bgInput,
                   borderRadius: 12,
                   borderWidth: 1,
-                  borderColor: '#e0e7ff',
+                  borderColor: colors.infoLight,
                   marginTop: 8,
                   overflow: 'hidden',
                 }}
@@ -465,14 +469,14 @@ export function FoodForm({
                         paddingHorizontal: 12,
                         paddingVertical: 10,
                         borderBottomWidth: idx < Math.min(suggestions.length, 5) - 1 ? 1 : 0,
-                        borderBottomColor: '#f3f4f6',
+                        borderBottomColor: colors.divider,
                       }}
                     >
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
-                        <Text style={{ fontSize: 14, color: '#111827', fontWeight: '500' }} numberOfLines={1}>
+                        <Text style={{ fontSize: 14, color: colors.text, fontWeight: '500' }} numberOfLines={1}>
                           {item.name}
                         </Text>
-                        <Text style={{ fontSize: 11, color: '#9ca3af' }}>
+                        <Text style={{ fontSize: 11, color: colors.textTertiary }}>
                           {CATEGORY_LABELS[item.category]}
                         </Text>
                       </View>
@@ -519,7 +523,7 @@ export function FoodForm({
 
           {/* 카테고리 — 3열 그리드 */}
           <View>
-            <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 8 }}>카테고리</Text>
+            <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 8 }}>카테고리</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {CATEGORIES.map((cat) => {
                 const isSelected = category === cat;
@@ -537,20 +541,20 @@ export function FoodForm({
                       paddingHorizontal: 10,
                       borderRadius: 12,
                       borderWidth: 1.5,
-                      borderColor: isSelected ? iconInfo.color : '#e5e7eb',
-                      backgroundColor: isSelected ? iconInfo.color + '14' : '#f9fafb',
+                      borderColor: isSelected ? iconInfo.color : colors.border,
+                      backgroundColor: isSelected ? iconInfo.color + '14' : colors.bgInput,
                     }}
                   >
                     <Ionicons
                       name={iconInfo.name}
                       size={16}
-                      color={isSelected ? iconInfo.color : '#9ca3af'}
+                      color={isSelected ? iconInfo.color : colors.textTertiary}
                     />
                     <Text
                       style={{
                         fontSize: 12,
                         fontWeight: '600',
-                        color: isSelected ? iconInfo.color : '#6b7280',
+                        color: isSelected ? iconInfo.color : colors.textSecondary,
                       }}
                       numberOfLines={1}
                     >
@@ -566,14 +570,14 @@ export function FoodForm({
           <View style={{ flexDirection: 'row', gap: 12 }}>
             {/* 수량 + 스테퍼 */}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>수량</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 6 }}>수량</Text>
               <View
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: '#f9fafb',
+                  backgroundColor: colors.bgInput,
                   borderWidth: 1,
-                  borderColor: '#e5e7eb',
+                  borderColor: colors.border,
                   borderRadius: 12,
                   overflow: 'hidden',
                 }}
@@ -585,16 +589,16 @@ export function FoodForm({
                     height: 44,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: '#f3f4f6',
+                    backgroundColor: colors.bg,
                   }}
                 >
-                  <Ionicons name="remove" size={18} color="#6b7280" />
+                  <Ionicons name="remove" size={18} color={colors.textSecondary} />
                 </TouchableOpacity>
                 <TextInput
                   style={{
                     flex: 1,
                     textAlign: 'center',
-                    color: '#111827',
+                    color: colors.text,
                     fontSize: 15,
                     fontWeight: '600',
                     paddingVertical: 10,
@@ -610,29 +614,29 @@ export function FoodForm({
                     height: 44,
                     alignItems: 'center',
                     justifyContent: 'center',
-                    backgroundColor: '#f3f4f6',
+                    backgroundColor: colors.bg,
                   }}
                 >
-                  <Ionicons name="add" size={18} color="#6b7280" />
+                  <Ionicons name="add" size={18} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
             </View>
 
             {/* 단위 */}
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>단위</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 6 }}>단위</Text>
               {showCustomUnit ? (
                 <View style={{ flexDirection: 'row', gap: 6 }}>
                   <TextInput
                     style={{
                       flex: 1,
-                      backgroundColor: '#f9fafb',
+                      backgroundColor: colors.bgInput,
                       borderWidth: 1,
-                      borderColor: '#3b82f6',
+                      borderColor: colors.info,
                       borderRadius: 12,
                       paddingHorizontal: 14,
                       paddingVertical: 10,
-                      color: '#111827',
+                      color: colors.text,
                       fontSize: 14,
                     }}
                     placeholder="단위 입력"
@@ -647,21 +651,21 @@ export function FoodForm({
                     style={{
                       width: 40,
                       borderRadius: 12,
-                      backgroundColor: '#f3f4f6',
+                      backgroundColor: colors.bg,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <Ionicons name="checkmark" size={18} color="#22c55e" />
+                    <Ionicons name="checkmark" size={18} color={colors.success} />
                   </TouchableOpacity>
                 </View>
               ) : (
                 <TouchableOpacity
                   onPress={() => setShowCustomUnit(true)}
                   style={{
-                    backgroundColor: '#f9fafb',
+                    backgroundColor: colors.bgInput,
                     borderWidth: 1,
-                    borderColor: '#e5e7eb',
+                    borderColor: colors.border,
                     borderRadius: 12,
                     paddingHorizontal: 14,
                     paddingVertical: 12,
@@ -670,8 +674,8 @@ export function FoodForm({
                     justifyContent: 'space-between',
                   }}
                 >
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: '#111827' }}>{unit}</Text>
-                  <Ionicons name="chevron-down" size={16} color="#9ca3af" />
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>{unit}</Text>
+                  <Ionicons name="chevron-down" size={16} color={colors.textTertiary} />
                 </TouchableOpacity>
               )}
             </View>
@@ -691,11 +695,11 @@ export function FoodForm({
                       paddingVertical: 6,
                       borderRadius: 16,
                       borderWidth: 1.5,
-                      borderColor: isSelected ? '#3b82f6' : '#e5e7eb',
-                      backgroundColor: isSelected ? '#eff6ff' : '#f9fafb',
+                      borderColor: isSelected ? colors.info : colors.border,
+                      backgroundColor: isSelected ? colors.infoLight : colors.bgInput,
                     }}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: isSelected ? '#1d4ed8' : '#6b7280' }}>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: isSelected ? colors.info : colors.textSecondary }}>
                       {u}
                     </Text>
                   </TouchableOpacity>
@@ -708,11 +712,11 @@ export function FoodForm({
                   paddingVertical: 6,
                   borderRadius: 16,
                   borderWidth: 1.5,
-                  borderColor: showCustomUnit ? '#3b82f6' : '#e5e7eb',
-                  backgroundColor: showCustomUnit ? '#eff6ff' : '#f9fafb',
+                  borderColor: showCustomUnit ? colors.info : colors.border,
+                  backgroundColor: showCustomUnit ? colors.infoLight : colors.bgInput,
                 }}
               >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: showCustomUnit ? '#1d4ed8' : '#6b7280' }}>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: showCustomUnit ? colors.info : colors.textSecondary }}>
                   직접 입력
                 </Text>
               </TouchableOpacity>
@@ -725,7 +729,7 @@ export function FoodForm({
           {/* 냉장고 선택 */}
           {refrigerators.length > 0 && (
             <View>
-              <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>냉장고</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 6 }}>냉장고</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <TouchableOpacity
@@ -735,11 +739,11 @@ export function FoodForm({
                       paddingVertical: 7,
                       borderRadius: 20,
                       borderWidth: 1.5,
-                      borderColor: !refrigeratorId ? '#3b82f6' : '#e5e7eb',
-                      backgroundColor: !refrigeratorId ? '#eff6ff' : '#f9fafb',
+                      borderColor: !refrigeratorId ? colors.info : colors.border,
+                      backgroundColor: !refrigeratorId ? colors.infoLight : colors.bgInput,
                     }}
                   >
-                    <Text style={{ fontSize: 12, fontWeight: '600', color: !refrigeratorId ? '#1d4ed8' : '#9ca3af' }}>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: !refrigeratorId ? colors.info : colors.textTertiary }}>
                       미지정
                     </Text>
                   </TouchableOpacity>
@@ -755,8 +759,8 @@ export function FoodForm({
                         paddingVertical: 7,
                         borderRadius: 20,
                         borderWidth: 1.5,
-                        borderColor: refrigeratorId === fridge.id ? '#3b82f6' : '#e5e7eb',
-                        backgroundColor: refrigeratorId === fridge.id ? '#eff6ff' : '#f9fafb',
+                        borderColor: refrigeratorId === fridge.id ? colors.info : colors.border,
+                        backgroundColor: refrigeratorId === fridge.id ? colors.infoLight : colors.bgInput,
                       }}
                     >
                       {fridge.color && (
@@ -766,7 +770,7 @@ export function FoodForm({
                         style={{
                           fontSize: 12,
                           fontWeight: '600',
-                          color: refrigeratorId === fridge.id ? '#1d4ed8' : '#374151',
+                          color: refrigeratorId === fridge.id ? colors.info : colors.text,
                         }}
                       >
                         {fridge.name}
@@ -781,7 +785,7 @@ export function FoodForm({
           {/* 구역 선택 */}
           {selectedFridge && zones.length > 0 && (
             <View>
-              <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>구역</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 6 }}>구역</Text>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
                 {zones.map((z) => (
                   <TouchableOpacity
@@ -792,15 +796,15 @@ export function FoodForm({
                       paddingVertical: 7,
                       borderRadius: 20,
                       borderWidth: 1.5,
-                      borderColor: zone === z.key ? '#3b82f6' : '#e5e7eb',
-                      backgroundColor: zone === z.key ? '#eff6ff' : '#f9fafb',
+                      borderColor: zone === z.key ? colors.info : colors.border,
+                      backgroundColor: zone === z.key ? colors.infoLight : colors.bgInput,
                     }}
                   >
                     <Text
                       style={{
                         fontSize: 12,
                         fontWeight: '600',
-                        color: zone === z.key ? '#1d4ed8' : '#374151',
+                        color: zone === z.key ? colors.info : colors.text,
                       }}
                     >
                       {z.label}
@@ -814,7 +818,7 @@ export function FoodForm({
           {/* 층 선택 */}
           {zone && maxShelves > 0 && (
             <View>
-              <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>층</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 6 }}>층</Text>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {Array.from({ length: maxShelves }, (_, i) => i + 1).map((n) => (
                   <TouchableOpacity
@@ -825,8 +829,8 @@ export function FoodForm({
                       height: 36,
                       borderRadius: 18,
                       borderWidth: 1.5,
-                      borderColor: shelf === n ? '#3b82f6' : '#e5e7eb',
-                      backgroundColor: shelf === n ? '#eff6ff' : '#f9fafb',
+                      borderColor: shelf === n ? colors.info : colors.border,
+                      backgroundColor: shelf === n ? colors.infoLight : colors.bgInput,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -835,7 +839,7 @@ export function FoodForm({
                       style={{
                         fontSize: 13,
                         fontWeight: '700',
-                        color: shelf === n ? '#1d4ed8' : '#374151',
+                        color: shelf === n ? colors.info : colors.text,
                       }}
                     >
                       {n}
@@ -849,7 +853,7 @@ export function FoodForm({
           {/* 깊이 선택 */}
           {zone && (
             <View>
-              <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>깊이</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 6 }}>깊이</Text>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {DEPTH_OPTIONS.map((d) => (
                   <TouchableOpacity
@@ -860,8 +864,8 @@ export function FoodForm({
                       paddingVertical: 8,
                       borderRadius: 10,
                       borderWidth: 1.5,
-                      borderColor: depth === d.key ? '#3b82f6' : '#e5e7eb',
-                      backgroundColor: depth === d.key ? '#eff6ff' : '#f9fafb',
+                      borderColor: depth === d.key ? colors.info : colors.border,
+                      backgroundColor: depth === d.key ? colors.infoLight : colors.bgInput,
                       alignItems: 'center',
                     }}
                   >
@@ -869,7 +873,7 @@ export function FoodForm({
                       style={{
                         fontSize: 13,
                         fontWeight: '600',
-                        color: depth === d.key ? '#1d4ed8' : '#6b7280',
+                        color: depth === d.key ? colors.info : colors.textSecondary,
                       }}
                     >
                       {d.label}
@@ -883,7 +887,7 @@ export function FoodForm({
           {/* 좌/우 위치 */}
           {zone && (
             <View>
-              <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>좌/우 위치 (선택)</Text>
+              <Text style={{ fontSize: 12, color: colors.textSecondary, marginBottom: 6 }}>좌/우 위치 (선택)</Text>
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 {COL_OPTIONS.map((c) => (
                   <TouchableOpacity
@@ -894,8 +898,8 @@ export function FoodForm({
                       paddingVertical: 8,
                       borderRadius: 10,
                       borderWidth: 1.5,
-                      borderColor: colPosition === c.key ? '#3b82f6' : '#e5e7eb',
-                      backgroundColor: colPosition === c.key ? '#eff6ff' : '#f9fafb',
+                      borderColor: colPosition === c.key ? colors.info : colors.border,
+                      backgroundColor: colPosition === c.key ? colors.infoLight : colors.bgInput,
                       alignItems: 'center',
                     }}
                   >
@@ -903,7 +907,7 @@ export function FoodForm({
                       style={{
                         fontSize: 13,
                         fontWeight: '600',
-                        color: colPosition === c.key ? '#1d4ed8' : '#6b7280',
+                        color: colPosition === c.key ? colors.info : colors.textSecondary,
                       }}
                     >
                       {c.label}
@@ -925,18 +929,19 @@ export function FoodForm({
         <SectionCard title="메모" icon="chatbubble-ellipses-outline">
           <TextInput
             style={{
-              backgroundColor: '#f9fafb',
+              backgroundColor: colors.bgInput,
               borderWidth: 1,
-              borderColor: '#e5e7eb',
+              borderColor: colors.border,
               borderRadius: 12,
               paddingHorizontal: 16,
               paddingVertical: 12,
-              color: '#111827',
+              color: colors.text,
               fontSize: 14,
               minHeight: 80,
               textAlignVertical: 'top',
             }}
             placeholder="메모를 입력하세요"
+            placeholderTextColor={colors.textTertiary}
             value={memo}
             onChangeText={setMemo}
             multiline
@@ -952,11 +957,11 @@ export function FoodForm({
             borderRadius: 14,
             paddingVertical: 16,
             alignItems: 'center',
-            backgroundColor: isLoading || !name.trim() ? '#d1d5db' : '#3b82f6',
+            backgroundColor: isLoading || !name.trim() ? colors.border : colors.info,
             marginTop: 4,
           }}
         >
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+          <Text style={{ color: colors.textInverse, fontSize: 16, fontWeight: '700' }}>
             {isLoading ? '저장 중...' : submitLabel}
           </Text>
         </TouchableOpacity>

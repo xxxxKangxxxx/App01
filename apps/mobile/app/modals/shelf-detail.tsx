@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFoodItems } from '../../hooks/useFoodItems';
 import { getFoodEmoji } from '../../constants/foodEmoji';
 import { getDaysUntilExpiry } from '../../utils/date';
+import { useThemeStore } from '../../store/theme.store';
 
 function expiryColor(days: number | null): string {
   if (days === null) return '#9ca3af';
@@ -22,6 +23,7 @@ function expiryColor(days: number | null): string {
 }
 
 export default function ShelfDetailModal() {
+  const { colors } = useThemeStore();
   const params = useLocalSearchParams<{
     refrigeratorId?: string;
     zone?: string;
@@ -39,19 +41,19 @@ export default function ShelfDetailModal() {
   });
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f9fafb' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
       <View style={{ padding: 20 }}>
         {/* 헤더 */}
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-          <Text style={{ fontSize: 18, fontWeight: '700', color: '#111827' }}>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: colors.text }}>
             {params.title ?? '선반 상세'}
           </Text>
           <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="close" size={22} color="#6b7280" />
+            <Ionicons name="close" size={22} color={colors.textSecondary} />
           </TouchableOpacity>
         </View>
 
-        <Text style={{ fontSize: 13, color: '#6b7280', marginBottom: 12 }}>
+        <Text style={{ fontSize: 13, color: colors.textSecondary, marginBottom: 12 }}>
           {items.length}개의 식재료
         </Text>
       </View>
@@ -72,13 +74,13 @@ export default function ShelfDetailModal() {
                 router.push(`/(tabs)/edit?id=${item.id}`);
               }}
               style={{
-                backgroundColor: '#fff',
+                backgroundColor: colors.bgCard,
                 borderRadius: 12,
                 padding: 14,
                 flexDirection: 'row',
                 alignItems: 'center',
                 borderWidth: 1,
-                borderColor: '#e5e7eb',
+                borderColor: colors.border,
               }}
             >
               {/* 이모지 + 유통기한 색상 */}
@@ -97,10 +99,10 @@ export default function ShelfDetailModal() {
 
               {/* 이름 + 카테고리 */}
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 15, fontWeight: '600', color: '#111827' }}>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.text }}>
                   {item.name}
                 </Text>
-                <Text style={{ fontSize: 12, color: '#9ca3af', marginTop: 2 }}>
+                <Text style={{ fontSize: 12, color: colors.textTertiary, marginTop: 2 }}>
                   {item.quantity}{item.unit}
                   {item.depth ? ` · ${item.depth === 'front' ? '앞' : item.depth === 'back' ? '뒤' : '중간'}` : ''}
                 </Text>
@@ -126,8 +128,8 @@ export default function ShelfDetailModal() {
         }}
         ListEmptyComponent={
           <View style={{ alignItems: 'center', paddingVertical: 40 }}>
-            <Ionicons name="cube-outline" size={36} color="#d1d5db" style={{ marginBottom: 8 }} />
-            <Text style={{ color: '#9ca3af', fontSize: 14 }}>이 선반은 비어있어요</Text>
+            <Ionicons name="cube-outline" size={36} color={colors.border} style={{ marginBottom: 8 }} />
+            <Text style={{ color: colors.textTertiary, fontSize: 14 }}>이 선반은 비어있어요</Text>
           </View>
         }
       />

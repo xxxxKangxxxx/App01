@@ -33,6 +33,7 @@ freshbox/                        ← 모노레포 루트
 | 패키지 | pnpm Workspaces + Turborepo |
 | Auth | 카카오/네이버/구글 OAuth (커스텀 axios 전략) + JWT (passport-jwt) |
 | 상태관리 | Zustand (클라이언트) + React Query (서버) |
+| 다크모드 | Zustand 테마 스토어 + AsyncStorage + 중앙 색상 상수 (system/light/dark) |
 | 알림 | expo-server-sdk + @nestjs/schedule (Cron) |
 | 토큰 저장 | expo-secure-store |
 | SVG/3D | react-native-svg + expo-linear-gradient (3D 냉장고 뷰) |
@@ -171,8 +172,17 @@ freshbox/                        ← 모노레포 루트
   - [x] race condition 방지: requestId 카운터 패턴 적용
   - [x] `packages/types`: `STORAGE_METHOD_LABELS` 상수 추가 (CATEGORY_LABELS 패턴과 일치)
 
-### 남은 작업 — UI 개선 (진행 중)
-- [ ] 다크모드 지원
+- [x] **다크모드 지원** (2026-04-04)
+  - [x] `constants/colors.ts`: 라이트/다크 색상 팔레트 (ThemeColors 인터페이스)
+  - [x] `store/theme.store.ts`: Zustand 테마 스토어 (system/light/dark + AsyncStorage 저장)
+  - [x] `settings.tsx`: 3단 테마 토글 UI (시스템 설정/라이트/다크)
+  - [x] 17개 화면/컴포넌트 하드코딩 색상 → `colors.*` 전환
+  - [x] 루트/탭 레이아웃, 로그인, 홈, 추가, 수정, 알림, 영수증 스캔
+  - [x] FoodForm, ExpiryBadge, FridgeCard, 모달 3개
+  - [x] ExpiryBadge: NativeWind className → inline styles 전환
+  - [x] 냉장고 3D 뷰(RefrigeratorView/FlatShelf/DoorBinColumn)는 냉장고 자체 색상 사용 — 테마 변경 불필요
+
+### 남은 작업 — UI 개선
 - [ ] 온보딩/튜토리얼 플로우
 - [ ] 로그인 화면 브랜딩 강화
 
@@ -289,6 +299,8 @@ cd /Users/kang-yeongmo/App/freshbox/apps/mobile && pnpm dev   # JS만 변경
 | `app/modals/refrigerator-setup.tsx` | 냉장고 등록/수정/삭제 모달 |
 | `app/modals/shelf-detail.tsx` | 선반 상세 모달 (해당 층 식재료 목록) |
 | `store/auth.store.ts` | Zustand + SecureStore 토큰 관리 |
+| `store/theme.store.ts` | Zustand 테마 스토어 (system/light/dark + AsyncStorage) |
+| `constants/colors.ts` | 라이트/다크 색상 팔레트 (ThemeColors 인터페이스) |
 | `services/api.ts` | axios 인스턴스 + JWT 인터셉터 + receiptApi/shelfLifeApi 포함 |
 | `services/ocr.ts` | ML Kit 온디바이스 텍스트 인식 유틸 |
 | `hooks/useRefrigerators.ts` | 냉장고 CRUD React Query 훅 |

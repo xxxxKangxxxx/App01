@@ -164,6 +164,13 @@ freshbox/                        ← 모노레포 루트
   - [x] `RefrigeratorView.tsx`: `ZoneHeader` (구역 아이콘 + 아이템 수 + 임박 뱃지), `HeaderSummary` (채워짐 게이지 + 상태 뱃지)
   - [x] `fridge-detail.tsx`: 요약 카드 (전체/여유/임박/만료) + 냉장고 타입 서브텍스트
 
+- [x] **유통기한 자동 제안** (2026-04-02)
+  - [x] `FoodForm.tsx`: 이름 입력 시 400ms debounce → `shelf-life/search` API 호출 → 인라인 제안 목록
+  - [x] 제안 선택 시 이름 + 카테고리 + 유통기한(오늘+defaultDays) 자동 설정
+  - [x] 사용자가 직접 유통기한 설정 시 자동 입력 덮어쓰지 않음
+  - [x] race condition 방지: requestId 카운터 패턴 적용
+  - [x] `packages/types`: `STORAGE_METHOD_LABELS` 상수 추가 (CATEGORY_LABELS 패턴과 일치)
+
 ### 남은 작업 — UI 개선 (진행 중)
 - [ ] 다크모드 지원
 - [ ] 온보딩/튜토리얼 플로우
@@ -180,11 +187,8 @@ freshbox/                        ← 모노레포 루트
 
 ### ~~1. 영수증 스캔~~ → 완료 (2026-03-15)
 
-### 2. 유통기한 자동 제안
-> 식재료 이름 입력 시 ShelfLife DB를 활용하여 유통기한 자동 제안 (영수증 스캔에서 부분 구현됨)
-
-**필요한 작업**
-- [ ] 모바일: `FoodForm`에서 이름 입력 시 `shelf-life/search` API 호출 → 유통기한 자동 입력
+### ~~2. 유통기한 자동 제안~~ → 완료 (2026-04-02)
+> 식재료 이름 입력 시 ShelfLife DB를 활용하여 유통기한 자동 제안
 
 ---
 

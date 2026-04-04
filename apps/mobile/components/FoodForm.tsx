@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,14 @@ import {
   ScrollView,
   Platform,
   Modal,
+  ActivityIndicator,
 } from 'react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { Ionicons } from '@expo/vector-icons';
-import { Category, CATEGORY_LABELS, CreateFoodItemDto } from '@freshbox/types';
+import { Category, CATEGORY_LABELS, CreateFoodItemDto, FoodShelfLife, STORAGE_METHOD_LABELS } from '@freshbox/types';
 import { useRefrigerators } from '../hooks/useRefrigerators';
 import { getZonesForType, getShelvesForZone } from './refrigerator/fridgeConfigs';
+import { shelfLifeApi } from '../services/api';
 
 // ── 카테고리 아이콘 매핑 ──
 const CATEGORY_ICONS: Record<Category, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
@@ -298,6 +300,61 @@ export function FoodForm({
   const [depth, setDepth] = useState(initialValues?.depth ?? '');
   const [colPosition, setColPosition] = useState(initialValues?.colPosition ?? '');
 
+  // ── 유통기한 자동 제안 ──
+  const [suggestions, setSuggestions] = useState<FoodShelfLife[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [appliedSuggestion, setAppliedSuggestion] = useState<string | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestIdRef = useRef(0);
+  const userSetExpiry = useRef(!!initialValues?.expiresAt);
+
+  const searchShelfLife = useCallback(async (query: string) => {
+    if (query.trim().length < 1) {
+      setSuggestions([]);
+      return;
+    }
+    const id = ++requestIdRef.current;
+    setIsSearching(true);
+    try {
+      const res = await shelfLifeApi.search(query.trim());
+      if (id === requestIdRef.current) setSuggestions(res.data ?? []);
+    } catch {
+      if (id === requestIdRef.current) setSuggestions([]);
+    } finally {
+      if (id === requestIdRef.current) setIsSearching(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!name.trim() || appliedSuggestion === name.trim()) {
+      setSuggestions([]);
+      return;
+    }
+    debounceRef.current = setTimeout(() => searchShelfLife(name), 400);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [name, searchShelfLife, appliedSuggestion]);
+
+  const handleSelectSuggestion = (item: FoodShelfLife) => {
+    setName(item.name);
+    setCategory(item.category);
+    setAppliedSuggestion(item.name);
+    setSuggestions([]);
+
+    // 사용자가 직접 유통기한을 설정하지 않았을 때만 자동 입력
+    if (!userSetExpiry.current) {
+      const d = new Date();
+      d.setDate(d.getDate() + item.defaultDays);
+      setExpiresAt(formatDate(d));
+    }
+  };
+
+  const handleExpiresAtChange = (dateStr: string) => {
+    setExpiresAt(dateStr);
+    if (dateStr) userSetExpiry.current = true;
+    else userSetExpiry.current = false;
+  };
+
   const { data: refrigerators = [] } = useRefrigerators();
 
   const selectedFridge = refrigerators.find((r) => r.id === refrigeratorId);
@@ -352,26 +409,133 @@ export function FoodForm({
 
         {/* ── 기본 정보 ── */}
         <SectionCard title="기본 정보" icon="create-outline">
-          {/* 이름 */}
+          {/* 이름 + 유통기한 자동 제안 */}
           <View>
             <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 6 }}>
               이름 <Text style={{ color: '#ef4444' }}>*</Text>
             </Text>
-            <TextInput
-              style={{
-                backgroundColor: '#f9fafb',
-                borderWidth: 1,
-                borderColor: '#e5e7eb',
-                borderRadius: 12,
-                paddingHorizontal: 16,
-                paddingVertical: 12,
-                color: '#111827',
-                fontSize: 15,
-              }}
-              placeholder="예: 당근, 닭가슴살"
-              value={name}
-              onChangeText={setName}
-            />
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <TextInput
+                style={{
+                  flex: 1,
+                  backgroundColor: '#f9fafb',
+                  borderWidth: 1,
+                  borderColor: suggestions.length > 0 ? '#3b82f6' : '#e5e7eb',
+                  borderRadius: 12,
+                  paddingHorizontal: 16,
+                  paddingVertical: 12,
+                  paddingRight: isSearching ? 40 : 16,
+                  color: '#111827',
+                  fontSize: 15,
+                }}
+                placeholder="예: 당근, 닭가슴살"
+                value={name}
+                onChangeText={(text) => {
+                  setName(text);
+                  if (appliedSuggestion) setAppliedSuggestion(null);
+                }}
+              />
+              {isSearching && (
+                <ActivityIndicator
+                  size="small"
+                  color="#3b82f6"
+                  style={{ position: 'absolute', right: 14 }}
+                />
+              )}
+            </View>
+
+            {/* 자동 제안 목록 (인라인) */}
+            {suggestions.length > 0 && (
+              <View
+                style={{
+                  backgroundColor: '#f9fafb',
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: '#e0e7ff',
+                  marginTop: 8,
+                  overflow: 'hidden',
+                }}
+              >
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 4,
+                    paddingHorizontal: 12,
+                    paddingVertical: 7,
+                    backgroundColor: '#eef2ff',
+                    borderBottomWidth: 1,
+                    borderBottomColor: '#e0e7ff',
+                  }}
+                >
+                  <Ionicons name="sparkles" size={12} color="#6366f1" />
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: '#4f46e5' }}>
+                    유통기한 자동 제안
+                  </Text>
+                </View>
+                {suggestions.slice(0, 5).map((item, idx) => {
+                  const storageLabel = STORAGE_METHOD_LABELS[item.storageMethod];
+                  return (
+                    <TouchableOpacity
+                      key={item.id ?? `${item.name}-${idx}`}
+                      onPress={() => handleSelectSuggestion(item)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        paddingHorizontal: 12,
+                        paddingVertical: 10,
+                        borderBottomWidth: idx < Math.min(suggestions.length, 5) - 1 ? 1 : 0,
+                        borderBottomColor: '#f3f4f6',
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 }}>
+                        <Text style={{ fontSize: 14, color: '#111827', fontWeight: '500' }} numberOfLines={1}>
+                          {item.name}
+                        </Text>
+                        <Text style={{ fontSize: 11, color: '#9ca3af' }}>
+                          {CATEGORY_LABELS[item.category]}
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 3,
+                          backgroundColor: '#f0fdf4',
+                          borderRadius: 8,
+                          paddingHorizontal: 7,
+                          paddingVertical: 3,
+                        }}
+                      >
+                        <Ionicons name="time-outline" size={11} color="#22c55e" />
+                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#16a34a' }}>
+                          {item.defaultDays}일 ({storageLabel})
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            )}
+
+            {/* 자동 제안 적용 안내 */}
+            {appliedSuggestion && !userSetExpiry.current && expiresAt && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  marginTop: 6,
+                  paddingHorizontal: 4,
+                }}
+              >
+                <Ionicons name="checkmark-circle" size={14} color="#22c55e" />
+                <Text style={{ fontSize: 11, color: '#22c55e', fontWeight: '500' }}>
+                  유통기한이 자동 설정되었습니다 ({expiresAt})
+                </Text>
+              </View>
+            )}
           </View>
 
           {/* 카테고리 — 3열 그리드 */}
@@ -775,7 +939,7 @@ export function FoodForm({
         {/* ── 날짜 ── */}
         <SectionCard title="날짜" icon="calendar-outline">
           <DateField label="구매일" value={purchasedAt} onChange={setPurchasedAt} />
-          <DateField label="유통기한" value={expiresAt} onChange={setExpiresAt} showPresets />
+          <DateField label="유통기한" value={expiresAt} onChange={handleExpiresAtChange} showPresets />
         </SectionCard>
 
         {/* ── 메모 ── */}

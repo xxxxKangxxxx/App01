@@ -198,6 +198,12 @@ export interface BulkCreateFoodItemResponse {
 
 export type StorageMethod = 'REFRIGERATED' | 'FROZEN' | 'ROOM_TEMP';
 
+export const STORAGE_METHOD_LABELS: Record<StorageMethod, string> = {
+  REFRIGERATED: '냉장',
+  FROZEN: '냉동',
+  ROOM_TEMP: '실온',
+};
+
 export interface FoodShelfLife {
   id: string;
   name: string;

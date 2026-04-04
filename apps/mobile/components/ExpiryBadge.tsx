@@ -1,23 +1,15 @@
 import React from 'react';
 import { View, Text } from 'react-native';
+import { getDaysUntilExpiry } from '../utils/date';
 
 interface ExpiryBadgeProps {
   expiresAt?: string | null;
 }
 
-function getDaysUntilExpiry(expiresAt: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const expiry = new Date(expiresAt);
-  expiry.setHours(0, 0, 0, 0);
-  const diff = expiry.getTime() - today.getTime();
-  return Math.ceil(diff / (1000 * 60 * 60 * 24));
-}
-
 export function ExpiryBadge({ expiresAt }: ExpiryBadgeProps) {
   if (!expiresAt) return null;
 
-  const days = getDaysUntilExpiry(expiresAt);
+  const days = getDaysUntilExpiry(expiresAt)!;
 
   let label = '';
   let bgClass = '';

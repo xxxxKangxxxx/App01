@@ -16,15 +16,7 @@ import { FridgeCard } from '../../components/refrigerator/FridgeCard';
 import { CATEGORY_LABELS } from '@freshbox/types';
 import type { FoodItem } from '@freshbox/types';
 import { getFoodEmoji } from '../../constants/foodEmoji';
-
-// ─── 유통기한 계산 ──────────────────────────────────────────────
-function getDaysUntilExpiry(expiresAt: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const expiry = new Date(expiresAt);
-  expiry.setHours(0, 0, 0, 0);
-  return Math.ceil((expiry.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
-}
+import { getDaysUntilExpiry } from '../../utils/date';
 
 // ─── 온보딩 화면 ─────────────────────────────────────────────────
 function OnboardingView() {
@@ -57,11 +49,11 @@ function StatsSummary({ items }: { items: FoodItem[] }) {
   const totalCount = items.length;
   const expiredCount = items.filter((i) => {
     if (!i.expiresAt) return false;
-    return getDaysUntilExpiry(i.expiresAt) < 0;
+    return getDaysUntilExpiry(i.expiresAt)! < 0;
   }).length;
   const expiringCount = items.filter((i) => {
     if (!i.expiresAt) return false;
-    const d = getDaysUntilExpiry(i.expiresAt);
+    const d = getDaysUntilExpiry(i.expiresAt)!;
     return d >= 0 && d <= 3;
   }).length;
   const safeCount = totalCount - expiredCount - expiringCount;
@@ -166,7 +158,7 @@ function StatItem({
 // ─── 미분류 아이템 칩 ────────────────────────────────────────────
 function expiryChipColor(expiresAt?: string | null) {
   if (!expiresAt) return { border: '#e5e7eb', bg: '#fff', text: '#374151', badge: '', badgeText: '' };
-  const days = getDaysUntilExpiry(expiresAt);
+  const days = getDaysUntilExpiry(expiresAt)!;
   if (days < 0)  return { border: '#d1d5db', bg: '#f3f4f6', text: '#9ca3af', badge: '#9ca3af', badgeText: '#fff' };
   if (days === 0) return { border: '#fca5a5', bg: '#fef2f2', text: '#b91c1c', badge: '#ef4444', badgeText: '#fff' };
   if (days <= 3)  return { border: '#fdba74', bg: '#fff7ed', text: '#c2410c', badge: '#f97316', badgeText: '#fff' };

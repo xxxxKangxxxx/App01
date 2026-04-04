@@ -4,6 +4,7 @@ import type { FoodItem, Refrigerator } from '@freshbox/types';
 import { REFRIGERATOR_TYPE_LABELS } from '@freshbox/types';
 import { Ionicons } from '@expo/vector-icons';
 import { getFoodEmoji } from '../../constants/foodEmoji';
+import { getDaysUntilExpiry } from '../../utils/date';
 
 function shadeColor(hex: string, amount: number): string {
   const num = parseInt(hex.replace('#', ''), 16);
@@ -11,14 +12,6 @@ function shadeColor(hex: string, amount: number): string {
   const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amount));
   const b = Math.min(255, Math.max(0, (num & 0x0000ff) + amount));
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-}
-
-function getDaysUntilExpiry(expiresAt: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const exp = new Date(expiresAt);
-  exp.setHours(0, 0, 0, 0);
-  return Math.ceil((exp.getTime() - today.getTime()) / 86400000);
 }
 
 interface FridgeCardProps {
@@ -36,11 +29,11 @@ export function FridgeCard({ refrigerator, items, onPress }: FridgeCardProps) {
   const fridgeItems = items.filter((i) => i.refrigeratorId === refrigerator.id);
   const expiredCount = fridgeItems.filter((i) => {
     if (!i.expiresAt) return false;
-    return getDaysUntilExpiry(i.expiresAt) < 0;
+    return getDaysUntilExpiry(i.expiresAt)! < 0;
   }).length;
   const expiringCount = fridgeItems.filter((i) => {
     if (!i.expiresAt) return false;
-    const days = getDaysUntilExpiry(i.expiresAt);
+    const days = getDaysUntilExpiry(i.expiresAt)!;
     return days >= 0 && days <= 3;
   }).length;
 

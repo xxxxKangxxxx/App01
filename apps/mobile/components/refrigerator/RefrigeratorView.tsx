@@ -16,6 +16,7 @@ import { getZonesForType, splitZones } from './fridgeConfigs';
 import { FlatShelf } from './FlatShelf';
 import { DoorBinColumn } from './DoorBinColumn';
 import { REFRIGERATOR_TYPE_LABELS } from '@freshbox/types';
+import { getDaysUntilExpiry } from '../../utils/date';
 
 interface RefrigeratorViewProps {
   refrigerator: Refrigerator;
@@ -29,15 +30,6 @@ function shadeColor(hex: string, amount: number): string {
   const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amount));
   const b = Math.min(255, Math.max(0, (num & 0x0000ff) + amount));
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
-}
-
-function getDaysUntilExpiry(expiresAt?: string | null): number | null {
-  if (!expiresAt) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const exp = new Date(expiresAt);
-  exp.setHours(0, 0, 0, 0);
-  return Math.ceil((exp.getTime() - today.getTime()) / 86400000);
 }
 
 function getItemStats(items: FoodItem[]) {

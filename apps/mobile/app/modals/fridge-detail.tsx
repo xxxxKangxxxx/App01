@@ -9,15 +9,7 @@ import { RefrigeratorView } from '../../components/refrigerator/RefrigeratorView
 import { REFRIGERATOR_TYPE_LABELS } from '@freshbox/types';
 import type { FoodItem } from '@freshbox/types';
 import type { ZoneConfig } from '../../components/refrigerator/fridgeConfigs';
-
-function getDaysUntilExpiry(expiresAt?: string | null): number | null {
-  if (!expiresAt) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const exp = new Date(expiresAt);
-  exp.setHours(0, 0, 0, 0);
-  return Math.ceil((exp.getTime() - today.getTime()) / 86400000);
-}
+import { getDaysUntilExpiry } from '../../utils/date';
 
 function SummaryCard({ items }: { items: FoodItem[] }) {
   let expired = 0;

@@ -4,17 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import type { FoodItem } from '@freshbox/types';
 import type { ZoneConfig } from './fridgeConfigs';
 import { getFoodEmoji } from '../../constants/foodEmoji';
+import { getDaysUntilExpiry } from '../../utils/date';
 
 const MAX_VISIBLE = 4;
-
-function getDaysUntilExpiry(expiresAt?: string | null): number | null {
-  if (!expiresAt) return null;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const exp = new Date(expiresAt);
-  exp.setHours(0, 0, 0, 0);
-  return Math.ceil((exp.getTime() - today.getTime()) / 86400000);
-}
 
 function getExpiryColor(expiresAt?: string | null): string {
   const days = getDaysUntilExpiry(expiresAt);

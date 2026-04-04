@@ -17,15 +17,7 @@ import { useFoodItems, useDeleteFoodItem, useUpdateFoodItem } from '../../hooks/
 import { CATEGORY_LABELS } from '@freshbox/types';
 import type { FoodItem } from '@freshbox/types';
 import { getFoodEmoji } from '../../constants/foodEmoji';
-
-// ─── 유틸 ────────────────────────────────────────────────────────
-function getDaysUntilExpiry(expiresAt: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const exp = new Date(expiresAt);
-  exp.setHours(0, 0, 0, 0);
-  return Math.ceil((exp.getTime() - today.getTime()) / 86400000);
-}
+import { getDaysUntilExpiry } from '../../utils/date';
 
 function formatExpiryDate(expiresAt: string): string {
   const d = new Date(expiresAt);
@@ -258,7 +250,7 @@ export default function AlertsScreen() {
 
   const categorize = (item: FoodItem) => {
     if (!item.expiresAt) return null;
-    const days = getDaysUntilExpiry(item.expiresAt);
+    const days = getDaysUntilExpiry(item.expiresAt)!;
     if (days < 0) return 'expired';
     if (days === 0) return 'dday';
     if (days === 1) return 'd1';

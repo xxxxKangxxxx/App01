@@ -15,6 +15,7 @@ import { Category, CATEGORY_LABELS, CreateFoodItemDto, FoodShelfLife, STORAGE_ME
 import { useRefrigerators } from '../hooks/useRefrigerators';
 import { getZonesForType, getShelvesForZone } from './refrigerator/fridgeConfigs';
 import { shelfLifeApi } from '../services/api';
+import { formatDate, parseDate, getDaysFromToday } from '../utils/date';
 
 // ── 카테고리 아이콘 매핑 ──
 const CATEGORY_ICONS: Record<Category, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
@@ -37,28 +38,6 @@ const CATEGORIES: Category[] = [
 
 // ── 단위 프리셋 ──
 const UNIT_PRESETS = ['개', 'g', 'kg', 'ml', 'L', '봉', '팩', '병', '근', '마리'];
-
-// ── 날짜 유틸 ──
-function formatDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-}
-
-function parseDate(str: string): Date | null {
-  if (!str) return null;
-  const d = new Date(str + 'T00:00:00');
-  return isNaN(d.getTime()) ? null : d;
-}
-
-function getDaysFromToday(date: Date): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const target = new Date(date);
-  target.setHours(0, 0, 0, 0);
-  return Math.ceil((target.getTime() - today.getTime()) / 86400000);
-}
 
 // ── 빠른 선택 프리셋 ──
 const QUICK_PRESETS = [

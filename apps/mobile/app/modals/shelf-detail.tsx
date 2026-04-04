@@ -10,14 +10,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useFoodItems } from '../../hooks/useFoodItems';
 import { getFoodEmoji } from '../../constants/foodEmoji';
-
-function getDaysUntilExpiry(expiresAt: string): number {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const exp = new Date(expiresAt);
-  exp.setHours(0, 0, 0, 0);
-  return Math.ceil((exp.getTime() - today.getTime()) / 86400000);
-}
+import { getDaysUntilExpiry } from '../../utils/date';
 
 function expiryColor(days: number | null): string {
   if (days === null) return '#9ca3af';

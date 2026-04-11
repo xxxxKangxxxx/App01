@@ -30,12 +30,16 @@ export class FoodItemsController {
     @Query('location') location?: string,
     @Query('expiringSoon') expiringSoon?: string,
     @Query('isConsumed') isConsumed?: string,
+    @Query('search') search?: string,
+    @Query('refrigeratorId') refrigeratorId?: string,
   ) {
     return this.foodItemsService.findAll(req.user.id, {
       category,
       location,
       expiringSoon: expiringSoon === 'true',
       isConsumed: isConsumed === 'true' ? true : isConsumed === 'false' ? false : undefined,
+      search,
+      refrigeratorId,
     });
   }
 
@@ -54,6 +58,17 @@ export class FoodItemsController {
   ) {
     const created = await this.foodItemsService.bulkCreate(req.user.id, dto.items);
     return { created, count: created.length };
+  }
+
+  @Get('stats/monthly')
+  getMonthlyStats(
+    @Request() req: { user: { id: string } },
+    @Query('year') year: string,
+    @Query('month') month: string,
+  ) {
+    const y = parseInt(year, 10) || new Date().getFullYear();
+    const m = parseInt(month, 10) || new Date().getMonth() + 1;
+    return this.foodItemsService.getMonthlyStats(req.user.id, y, m);
   }
 
   @Get(':id')

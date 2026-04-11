@@ -49,6 +49,8 @@ model FoodItem {
   location       String?
   memo           String?
   isConsumed     Boolean       @default(false)
+  consumedAt     DateTime?
+  deletedAt      DateTime?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   userId         String

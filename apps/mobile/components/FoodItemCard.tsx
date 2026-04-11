@@ -25,10 +25,10 @@ export function FoodItemCard({ item }: FoodItemCardProps) {
   const updateMutation = useUpdateFoodItem();
 
   const handleDelete = () => {
-    Alert.alert('삭제 확인', `${item.name}을(를) 삭제할까요?`, [
+    Alert.alert('폐기 확인', `${item.name}을(를) 폐기할까요?`, [
       { text: '취소', style: 'cancel' },
       {
-        text: '삭제',
+        text: '폐기',
         style: 'destructive',
         onPress: () => deleteMutation.mutate(item.id),
       },
@@ -118,7 +118,7 @@ export function FoodItemCard({ item }: FoodItemCardProps) {
               }}
               onPress={handleDelete}
             >
-              <Text style={{ color: colors.danger, fontSize: 12, fontWeight: '500' }}>삭제</Text>
+              <Text style={{ color: colors.danger, fontSize: 12, fontWeight: '500' }}>폐기</Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -57,15 +57,15 @@ function SwipeableAlertCard({ item }: { item: FoodItem }) {
             updateMutation.mutate({ id: item.id, data: { isConsumed: true } });
           });
         } else if (gestureState.dx < -80) {
-          // 왼쪽 스와이프 → 삭제
+          // 왼쪽 스와이프 → 폐기
           Animated.timing(translateX, { toValue: -400, duration: 200, useNativeDriver: true }).start(() => {
-            Alert.alert('삭제 확인', `${item.name}을(를) 삭제할까요?`, [
+            Alert.alert('폐기 확인', `${item.name}을(를) 폐기할까요?`, [
               {
                 text: '취소',
                 onPress: () => Animated.spring(translateX, { toValue: 0, useNativeDriver: true }).start(),
               },
               {
-                text: '삭제',
+                text: '폐기',
                 style: 'destructive',
                 onPress: () => deleteMutation.mutate(item.id),
               },
@@ -83,9 +83,9 @@ function SwipeableAlertCard({ item }: { item: FoodItem }) {
   };
 
   const handleDelete = () => {
-    Alert.alert('삭제 확인', `${item.name}을(를) 삭제할까요?`, [
+    Alert.alert('폐기 확인', `${item.name}을(를) 폐기할까요?`, [
       { text: '취소', style: 'cancel' },
-      { text: '삭제', style: 'destructive', onPress: () => deleteMutation.mutate(item.id) },
+      { text: '폐기', style: 'destructive', onPress: () => deleteMutation.mutate(item.id) },
     ]);
   };
 
@@ -98,10 +98,10 @@ function SwipeableAlertCard({ item }: { item: FoodItem }) {
           <Ionicons name="checkmark-circle" size={24} color={colors.textInverse} />
           <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textInverse, marginTop: 2 }}>소비</Text>
         </View>
-        {/* 오른쪽: 삭제 */}
+        {/* 오른쪽: 폐기 */}
         <View style={{ flex: 1, backgroundColor: colors.danger, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 20 }}>
           <Ionicons name="trash" size={24} color={colors.textInverse} />
-          <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textInverse, marginTop: 2 }}>삭제</Text>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textInverse, marginTop: 2 }}>폐기</Text>
         </View>
       </View>
 
@@ -329,7 +329,7 @@ export default function AlertsScreen() {
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
               <Ionicons name="arrow-back" size={12} color={colors.danger} />
-              <Text style={{ fontSize: 10, color: colors.textTertiary }}>밀어서 삭제</Text>
+              <Text style={{ fontSize: 10, color: colors.textTertiary }}>밀어서 폐기</Text>
             </View>
           </View>
         )}

@@ -80,6 +80,8 @@ export interface FoodItem {
   location?: string | null;
   memo?: string | null;
   isConsumed: boolean;
+  consumedAt?: string | null;
+  deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   userId: string;
@@ -295,4 +297,34 @@ export interface PurchaseAndAddDto {
   zone?: string;
   shelf?: number;
   expiresAt?: string;
+}
+
+// ── Monthly Stats ──
+
+export interface MonthlyStatsSummary {
+  purchased: number;
+  consumed: number;
+  discarded: number;
+  usageRate: number;
+}
+
+export interface CategoryStat {
+  purchased: number;
+  consumed: number;
+  discarded: number;
+}
+
+export interface TopItem {
+  name: string;
+  count: number;
+  category: string;
+}
+
+export interface MonthlyStatsResponse {
+  year: number;
+  month: number;
+  summary: MonthlyStatsSummary;
+  categoryStats: Record<string, CategoryStat>;
+  topPurchased: TopItem[];
+  topDiscarded: TopItem[];
 }

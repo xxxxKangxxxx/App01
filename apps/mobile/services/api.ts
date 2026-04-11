@@ -69,6 +69,12 @@ export const foodItemsApi = {
   delete: (id: string) => apiClient.delete(`/food-items/${id}`),
 };
 
+// Food Items Stats API
+export const foodItemsStatsApi = {
+  getMonthlyStats: (year: number, month: number) =>
+    apiClient.get('/food-items/stats/monthly', { params: { year, month } }),
+};
+
 // Refrigerators API
 export const refrigeratorsApi = {
   getAll: () => apiClient.get('/refrigerators'),

@@ -197,6 +197,16 @@ freshbox/                        ← 모노레포 루트
   - [x] 다크모드 완전 지원 (모든 컴포넌트 `useThemeStore()` 사용)
   - [x] 빈 상태: "장보기 추천이 없어요 / 식재료를 추가하고 소비하면 맞춤 추천해드려요"
 
+- [x] **다크모드 하드코딩 색상 전면 수정 + 캐시 버그 해결** (2026-04-11)
+  - [x] `constants/colors.ts`: `caution`/`cautionLight` 색상 추가 (D-4~7 노란색 다크모드)
+  - [x] `FoodItemCard.tsx`: NativeWind `className` → 인라인 스타일 + 테마 색상 전면 전환
+  - [x] `ExpiryBadge.tsx`: 하드코딩 색상 → `useThemeStore()` 테마 색상
+  - [x] `index.tsx`: StatItem 하드코딩 색상 → 테마, `expiryChipColor` → `useExpiryChipColor` hook
+  - [x] `alerts.tsx`: dStyle, 요약 카드, 섹션 헤더, 스와이프 배경, 액션 버튼 전부 테마 적용
+  - [x] `refrigerator-setup.tsx`: 구역 편집/삭제 버튼 테마 적용
+  - [x] `RecommendationCard.tsx`: `REASON_STYLES` → 동적 테마 색상
+  - [x] `useShopping.ts`: 추천→리스트 생성, 구매 완료 시 `shopping-recommendations` 캐시 갱신 추가
+
 ### 남은 작업 — UI 개선
 - [ ] 온보딩/튜토리얼 플로우
 - [ ] 로그인 화면 브랜딩 강화

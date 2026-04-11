@@ -222,6 +222,18 @@ export default function SettingsScreen() {
           앱 정보
         </Text>
         <View style={cardStyle}>
+          <SettingsRow
+            icon="help-circle-outline"
+            iconColor={colors.primary}
+            iconBg={colors.primaryLight}
+            label="앱 사용 가이드"
+            sub="주요 기능 소개 다시 보기"
+            onPress={() => router.push('/modals/onboarding')}
+            textColor={colors.text}
+            subColor={colors.textTertiary}
+            chevronColor={colors.textTertiary}
+          />
+          <View style={{ height: 1, backgroundColor: colors.divider, marginLeft: 62 }} />
           <View
             style={{
               flexDirection: 'row',

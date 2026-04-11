@@ -63,16 +63,33 @@ export default function LoginScreen() {
           resizeMode="contain"
         />
         <Text style={{ fontSize: 30, fontWeight: '700', color: colors.text, marginBottom: 8 }}>손안의냉장고</Text>
-        <Text style={{ fontSize: 16, color: colors.textSecondary, textAlign: 'center' }}>
+        <Text style={{ fontSize: 16, color: colors.textSecondary, textAlign: 'center', marginBottom: 24 }}>
           냉장고 식재료를 스마트하게 관리하세요
         </Text>
+
+        {/* 기능 하이라이트 */}
+        <View style={{ gap: 10 }}>
+          {[
+            { icon: 'snow-outline' as const, text: '냉장고 식재료 한눈에 관리' },
+            { icon: 'notifications-outline' as const, text: '유통기한 자동 알림' },
+            { icon: 'cart-outline' as const, text: '맞춤 장보기 추천' },
+          ].map((item, idx) => (
+            <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+              <Ionicons name={item.icon} size={18} color={colors.primary} />
+              <Text style={{ fontSize: 14, color: colors.textSecondary, fontWeight: '500' }}>{item.text}</Text>
+            </View>
+          ))}
+        </View>
       </View>
 
       {/* 소셜 로그인 버튼 */}
       <View style={{ paddingHorizontal: 24, paddingBottom: 48, gap: 12 }}>
-        <Text style={{ fontSize: 14, color: colors.textTertiary, textAlign: 'center', marginBottom: 8 }}>
-          SNS 계정으로 간편 로그인
-        </Text>
+        {/* 구분선 */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+          <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
+          <Text style={{ fontSize: 13, color: colors.textTertiary, paddingHorizontal: 12 }}>간편 로그인</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: colors.border }} />
+        </View>
 
         {/* 카카오 */}
         <TouchableOpacity

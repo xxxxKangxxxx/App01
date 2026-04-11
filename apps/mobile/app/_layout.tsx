@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
 import { useAuthStore } from '../store/auth.store';
 import { useThemeStore } from '../store/theme.store';
+import { useOnboardingStore } from '../store/onboarding.store';
 import { authApi } from '../services/api';
 
 Notifications.setNotificationHandler({
@@ -24,11 +25,13 @@ const queryClient = new QueryClient({
 function RootLayoutNav() {
   const { accessToken, isLoading, loadTokens } = useAuthStore();
   const { loadTheme, colors } = useThemeStore();
+  const { hasSeenOnboarding, loadOnboarding } = useOnboardingStore();
 
   useEffect(() => {
     loadTokens();
     loadTheme();
-  }, [loadTokens, loadTheme]);
+    loadOnboarding();
+  }, [loadTokens, loadTheme, loadOnboarding]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -37,9 +40,12 @@ function RootLayoutNav() {
       } else {
         router.replace('/(tabs)/');
         registerForPushNotifications();
+        if (!hasSeenOnboarding) {
+          setTimeout(() => router.push('/modals/onboarding'), 300);
+        }
       }
     }
-  }, [accessToken, isLoading]);
+  }, [accessToken, isLoading, hasSeenOnboarding]);
 
   return (
     <Stack
@@ -60,6 +66,10 @@ function RootLayoutNav() {
       />
       <Stack.Screen
         name="modals/fridge-detail"
+        options={{ presentation: 'modal', headerShown: false }}
+      />
+      <Stack.Screen
+        name="modals/onboarding"
         options={{ presentation: 'modal', headerShown: false }}
       />
     </Stack>

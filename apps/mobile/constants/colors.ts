@@ -34,6 +34,8 @@ export interface ThemeColors {
   successLight: string;
   info: string;
   infoLight: string;
+  caution: string;
+  cautionLight: string;
 
   // 탭바
   tabActive: string;
@@ -76,6 +78,8 @@ export const lightColors: ThemeColors = {
   successLight: '#f0fdf4',
   info: '#3b82f6',
   infoLight: '#eff6ff',
+  caution: '#eab308',
+  cautionLight: '#fefce8',
 
   tabActive: '#22c55e',
   tabInactive: '#9ca3af',
@@ -115,6 +119,8 @@ export const darkColors: ThemeColors = {
   successLight: '#14532d',
   info: '#60a5fa',
   infoLight: '#1e3a5f',
+  caution: '#facc15',
+  cautionLight: '#422006',
 
   tabActive: '#4ade80',
   tabInactive: '#64748b',

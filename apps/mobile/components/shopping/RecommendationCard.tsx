@@ -11,15 +11,21 @@ interface Props {
   onAdd: (item: RecommendedItem) => void;
 }
 
-const REASON_STYLES: Record<string, { bg: string; text: string; icon: keyof typeof Ionicons.glyphMap }> = {
-  staple_missing: { bg: '#eff6ff', text: '#3b82f6', icon: 'star-outline' },
-  expiring_repurchase: { bg: '#fff7ed', text: '#f97316', icon: 'time-outline' },
-  recent_consumed: { bg: '#f0fdf4', text: '#22c55e', icon: 'refresh-outline' },
+const REASON_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  staple_missing: 'star-outline',
+  expiring_repurchase: 'time-outline',
+  recent_consumed: 'refresh-outline',
 };
 
 export default function RecommendationCard({ item, onAdd }: Props) {
   const { colors } = useThemeStore();
-  const style = REASON_STYLES[item.reasonType] ?? REASON_STYLES.staple_missing;
+  const reasonStyleMap: Record<string, { bg: string; text: string }> = {
+    staple_missing: { bg: colors.infoLight, text: colors.info },
+    expiring_repurchase: { bg: colors.warningLight, text: colors.warning },
+    recent_consumed: { bg: colors.successLight, text: colors.success },
+  };
+  const style = reasonStyleMap[item.reasonType] ?? reasonStyleMap.staple_missing;
+  const icon = REASON_ICONS[item.reasonType] ?? 'star-outline';
 
   return (
     <View
@@ -68,7 +74,7 @@ export default function RecommendationCard({ item, onAdd }: Props) {
               paddingVertical: 2,
             }}
           >
-            <Ionicons name={style.icon} size={10} color={style.text} />
+            <Ionicons name={icon} size={10} color={style.text} />
             <Text style={{ fontSize: 10, fontWeight: '600', color: style.text }}>
               {item.reason}
             </Text>

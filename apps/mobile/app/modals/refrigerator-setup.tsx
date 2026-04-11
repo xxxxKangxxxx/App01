@@ -301,12 +301,12 @@ export default function RefrigeratorSetupModal() {
                         paddingHorizontal: 10,
                         paddingVertical: 4,
                         borderRadius: 6,
-                        backgroundColor: '#eff6ff',
+                        backgroundColor: colors.infoLight,
                         borderWidth: 1,
-                        borderColor: '#bfdbfe',
+                        borderColor: colors.info,
                       }}
                     >
-                      <Text style={{ fontSize: 12, color: '#1d4ed8', fontWeight: '500' }}>
+                      <Text style={{ fontSize: 12, color: colors.info, fontWeight: '500' }}>
                         이름 변경
                       </Text>
                     </TouchableOpacity>
@@ -318,12 +318,12 @@ export default function RefrigeratorSetupModal() {
                           paddingHorizontal: 10,
                           paddingVertical: 4,
                           borderRadius: 6,
-                          backgroundColor: '#fef2f2',
+                          backgroundColor: colors.dangerLight,
                           borderWidth: 1,
-                          borderColor: '#fecaca',
+                          borderColor: colors.danger,
                         }}
                       >
-                        <Text style={{ fontSize: 12, color: '#dc2626', fontWeight: '500' }}>
+                        <Text style={{ fontSize: 12, color: colors.danger, fontWeight: '500' }}>
                           삭제
                         </Text>
                       </TouchableOpacity>

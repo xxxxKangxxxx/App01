@@ -76,36 +76,36 @@ function StatsSummary({ items }: { items: FoodItem[] }) {
     >
       <StatItem
         icon="cube-outline"
-        iconColor="#3b82f6"
-        bgColor="#eff6ff"
+        iconColor={colors.info}
+        bgColor={colors.infoLight}
         label="전체"
         count={totalCount}
-        countColor="#1d4ed8"
+        countColor={colors.info}
       />
       <StatItem
         icon="checkmark-circle-outline"
-        iconColor="#22c55e"
-        bgColor="#f0fdf4"
+        iconColor={colors.success}
+        bgColor={colors.successLight}
         label="여유"
         count={safeCount}
-        countColor="#15803d"
+        countColor={colors.success}
       />
       <StatItem
         icon="alert-circle-outline"
-        iconColor="#f97316"
-        bgColor="#fff7ed"
+        iconColor={colors.warning}
+        bgColor={colors.warningLight}
         label="임박"
         count={expiringCount}
-        countColor="#c2410c"
+        countColor={colors.warning}
         onPress={expiringCount > 0 ? () => router.push('/(tabs)/alerts') : undefined}
       />
       <StatItem
         icon="close-circle-outline"
-        iconColor="#ef4444"
-        bgColor="#fef2f2"
+        iconColor={colors.danger}
+        bgColor={colors.dangerLight}
         label="만료"
         count={expiredCount}
-        countColor="#b91c1c"
+        countColor={colors.danger}
         onPress={expiredCount > 0 ? () => router.push('/(tabs)/alerts') : undefined}
       />
     </View>
@@ -160,19 +160,20 @@ function StatItem({
 }
 
 // ─── 미분류 아이템 칩 ────────────────────────────────────────────
-function expiryChipColor(expiresAt?: string | null) {
-  if (!expiresAt) return { border: '#e5e7eb', bg: '#fff', text: '#374151', badge: '', badgeText: '' };
+function useExpiryChipColor(expiresAt?: string | null) {
+  const { colors } = useThemeStore();
+  if (!expiresAt) return { border: colors.border, bg: colors.bgCard, text: colors.text, badge: '', badgeText: '' };
   const days = getDaysUntilExpiry(expiresAt)!;
-  if (days < 0)  return { border: '#d1d5db', bg: '#f3f4f6', text: '#9ca3af', badge: '#9ca3af', badgeText: '#fff' };
-  if (days === 0) return { border: '#fca5a5', bg: '#fef2f2', text: '#b91c1c', badge: '#ef4444', badgeText: '#fff' };
-  if (days <= 3)  return { border: '#fdba74', bg: '#fff7ed', text: '#c2410c', badge: '#f97316', badgeText: '#fff' };
-  if (days <= 7)  return { border: '#fde68a', bg: '#fefce8', text: '#92400e', badge: '#eab308', badgeText: '#fff' };
-  return { border: '#86efac', bg: '#f0fdf4', text: '#166534', badge: '#22c55e', badgeText: '#fff' };
+  if (days < 0)  return { border: colors.border, bg: colors.bgSecondary, text: colors.textTertiary, badge: colors.textTertiary, badgeText: colors.textInverse };
+  if (days === 0) return { border: colors.danger, bg: colors.dangerLight, text: colors.danger, badge: colors.danger, badgeText: colors.textInverse };
+  if (days <= 3)  return { border: colors.warning, bg: colors.warningLight, text: colors.warning, badge: colors.warning, badgeText: colors.textInverse };
+  if (days <= 7)  return { border: colors.caution, bg: colors.cautionLight, text: colors.caution, badge: colors.caution, badgeText: colors.textInverse };
+  return { border: colors.success, bg: colors.successLight, text: colors.success, badge: colors.success, badgeText: colors.textInverse };
 }
 
 function UnclassifiedChip({ item }: { item: FoodItem }) {
   const days = item.expiresAt ? getDaysUntilExpiry(item.expiresAt) : null;
-  const c = expiryChipColor(item.expiresAt);
+  const c = useExpiryChipColor(item.expiresAt);
   const label = days === null ? '' : days < 0 ? '만료' : days === 0 ? 'D-day' : `D-${days}`;
 
   return (

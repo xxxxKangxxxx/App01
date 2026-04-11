@@ -35,17 +35,13 @@ function SwipeableAlertCard({ item }: { item: FoodItem }) {
   const days = item.expiresAt ? getDaysUntilExpiry(item.expiresAt) : null;
   const dLabel = days === null ? '' : days < 0 ? '만료' : days === 0 ? 'D-day' : `D-${days}`;
 
-  const dStyle = days === null
-    ? { bg: '#f3f4f6', text: '#9ca3af' }
-    : days < 0
-      ? { bg: '#f3f4f6', text: '#9ca3af' }
-      : days === 0
-        ? { bg: '#fef2f2', text: '#ef4444' }
-        : days <= 1
-          ? { bg: '#fef2f2', text: '#ef4444' }
-          : days <= 3
-            ? { bg: '#fff7ed', text: '#f97316' }
-            : { bg: '#fefce8', text: '#eab308' };
+  const dStyle = days === null || days < 0
+    ? { bg: colors.bgSecondary, text: colors.textTertiary }
+    : days <= 1
+      ? { bg: colors.dangerLight, text: colors.danger }
+      : days <= 3
+        ? { bg: colors.warningLight, text: colors.warning }
+        : { bg: colors.cautionLight, text: colors.caution };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -98,14 +94,14 @@ function SwipeableAlertCard({ item }: { item: FoodItem }) {
       {/* 스와이프 배경 */}
       <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, flexDirection: 'row' }}>
         {/* 왼쪽: 소비 */}
-        <View style={{ flex: 1, backgroundColor: '#22c55e', alignItems: 'flex-start', justifyContent: 'center', paddingLeft: 20 }}>
-          <Ionicons name="checkmark-circle" size={24} color="#fff" />
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#fff', marginTop: 2 }}>소비</Text>
+        <View style={{ flex: 1, backgroundColor: colors.success, alignItems: 'flex-start', justifyContent: 'center', paddingLeft: 20 }}>
+          <Ionicons name="checkmark-circle" size={24} color={colors.textInverse} />
+          <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textInverse, marginTop: 2 }}>소비</Text>
         </View>
         {/* 오른쪽: 삭제 */}
-        <View style={{ flex: 1, backgroundColor: '#ef4444', alignItems: 'flex-end', justifyContent: 'center', paddingRight: 20 }}>
-          <Ionicons name="trash" size={24} color="#fff" />
-          <Text style={{ fontSize: 11, fontWeight: '700', color: '#fff', marginTop: 2 }}>삭제</Text>
+        <View style={{ flex: 1, backgroundColor: colors.danger, alignItems: 'flex-end', justifyContent: 'center', paddingRight: 20 }}>
+          <Ionicons name="trash" size={24} color={colors.textInverse} />
+          <Text style={{ fontSize: 11, fontWeight: '700', color: colors.textInverse, marginTop: 2 }}>삭제</Text>
         </View>
       </View>
 
@@ -173,12 +169,12 @@ function SwipeableAlertCard({ item }: { item: FoodItem }) {
                 width: 34,
                 height: 34,
                 borderRadius: 10,
-                backgroundColor: '#f0fdf4',
+                backgroundColor: colors.successLight,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="checkmark" size={18} color="#22c55e" />
+              <Ionicons name="checkmark" size={18} color={colors.success} />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={handleDelete}
@@ -186,12 +182,12 @@ function SwipeableAlertCard({ item }: { item: FoodItem }) {
                 width: 34,
                 height: 34,
                 borderRadius: 10,
-                backgroundColor: '#fef2f2',
+                backgroundColor: colors.dangerLight,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="trash-outline" size={16} color="#ef4444" />
+              <Ionicons name="trash-outline" size={16} color={colors.danger} />
             </TouchableOpacity>
           </View>
         </TouchableOpacity>
@@ -299,26 +295,26 @@ export default function AlertsScreen() {
           >
             {expiredItems.length > 0 && (
               <View style={{ flex: 1, alignItems: 'center' }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#9ca3af' }}>{expiredItems.length}</Text>
-                <Text style={{ fontSize: 10, color: '#9ca3af', marginTop: 2 }}>만료</Text>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: colors.textTertiary }}>{expiredItems.length}</Text>
+                <Text style={{ fontSize: 10, color: colors.textTertiary, marginTop: 2 }}>만료</Text>
               </View>
             )}
             {dDayItems.length > 0 && (
               <View style={{ flex: 1, alignItems: 'center' }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#ef4444' }}>{dDayItems.length}</Text>
-                <Text style={{ fontSize: 10, color: '#ef4444', marginTop: 2 }}>오늘</Text>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: colors.danger }}>{dDayItems.length}</Text>
+                <Text style={{ fontSize: 10, color: colors.danger, marginTop: 2 }}>오늘</Text>
               </View>
             )}
             {d1Items.length > 0 && (
               <View style={{ flex: 1, alignItems: 'center' }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#f97316' }}>{d1Items.length}</Text>
-                <Text style={{ fontSize: 10, color: '#f97316', marginTop: 2 }}>내일</Text>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: colors.warning }}>{d1Items.length}</Text>
+                <Text style={{ fontSize: 10, color: colors.warning, marginTop: 2 }}>내일</Text>
               </View>
             )}
             {d3Items.length > 0 && (
               <View style={{ flex: 1, alignItems: 'center' }}>
-                <Text style={{ fontSize: 22, fontWeight: '800', color: '#eab308' }}>{d3Items.length}</Text>
-                <Text style={{ fontSize: 10, color: '#eab308', marginTop: 2 }}>3일 내</Text>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: colors.caution }}>{d3Items.length}</Text>
+                <Text style={{ fontSize: 10, color: colors.caution, marginTop: 2 }}>3일 내</Text>
               </View>
             )}
           </View>
@@ -328,11 +324,11 @@ export default function AlertsScreen() {
         {totalAlerts > 0 && (
           <View style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 12, marginBottom: 14 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Ionicons name="arrow-forward" size={12} color="#22c55e" />
+              <Ionicons name="arrow-forward" size={12} color={colors.success} />
               <Text style={{ fontSize: 10, color: colors.textTertiary }}>밀어서 소비</Text>
             </View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Ionicons name="arrow-back" size={12} color="#ef4444" />
+              <Ionicons name="arrow-back" size={12} color={colors.danger} />
               <Text style={{ fontSize: 10, color: colors.textTertiary }}>밀어서 삭제</Text>
             </View>
           </View>
@@ -341,7 +337,7 @@ export default function AlertsScreen() {
         {/* 만료됨 */}
         {expiredItems.length > 0 && (
           <View style={{ marginBottom: 16 }}>
-            <SectionHeader icon="close-circle" iconColor="#9ca3af" bgColor="#f3f4f6" title="만료됨" count={expiredItems.length} />
+            <SectionHeader icon="close-circle" iconColor={colors.textTertiary} bgColor={colors.bgSecondary} title="만료됨" count={expiredItems.length} />
             {expiredItems.map((item) => (
               <SwipeableAlertCard key={item.id} item={item} />
             ))}
@@ -351,7 +347,7 @@ export default function AlertsScreen() {
         {/* D-day */}
         {dDayItems.length > 0 && (
           <View style={{ marginBottom: 16 }}>
-            <SectionHeader icon="alert-circle" iconColor="#ef4444" bgColor="#fef2f2" title="오늘 만료" count={dDayItems.length} />
+            <SectionHeader icon="alert-circle" iconColor={colors.danger} bgColor={colors.dangerLight} title="오늘 만료" count={dDayItems.length} />
             {dDayItems.map((item) => (
               <SwipeableAlertCard key={item.id} item={item} />
             ))}
@@ -361,7 +357,7 @@ export default function AlertsScreen() {
         {/* D-1 */}
         {d1Items.length > 0 && (
           <View style={{ marginBottom: 16 }}>
-            <SectionHeader icon="alert-circle-outline" iconColor="#f97316" bgColor="#fff7ed" title="내일 만료" count={d1Items.length} />
+            <SectionHeader icon="alert-circle-outline" iconColor={colors.warning} bgColor={colors.warningLight} title="내일 만료" count={d1Items.length} />
             {d1Items.map((item) => (
               <SwipeableAlertCard key={item.id} item={item} />
             ))}
@@ -371,7 +367,7 @@ export default function AlertsScreen() {
         {/* D-2~3 */}
         {d3Items.length > 0 && (
           <View style={{ marginBottom: 16 }}>
-            <SectionHeader icon="time-outline" iconColor="#eab308" bgColor="#fefce8" title="3일 내 만료" count={d3Items.length} />
+            <SectionHeader icon="time-outline" iconColor={colors.caution} bgColor={colors.cautionLight} title="3일 내 만료" count={d3Items.length} />
             {d3Items.map((item) => (
               <SwipeableAlertCard key={item.id} item={item} />
             ))}
@@ -381,7 +377,7 @@ export default function AlertsScreen() {
         {/* 비어있을 때 */}
         {totalAlerts === 0 && (
           <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: 80 }}>
-            <Ionicons name="checkmark-circle-outline" size={56} color="#22c55e" style={{ marginBottom: 16 }} />
+            <Ionicons name="checkmark-circle-outline" size={56} color={colors.success} style={{ marginBottom: 16 }} />
             <Text style={{ fontSize: 17, fontWeight: '600', color: colors.text }}>
               임박한 식재료가 없어요
             </Text>

@@ -1,12 +1,15 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { getDaysUntilExpiry } from '../utils/date';
+import { useThemeStore } from '../store/theme.store';
 
 interface ExpiryBadgeProps {
   expiresAt?: string | null;
 }
 
 export function ExpiryBadge({ expiresAt }: ExpiryBadgeProps) {
+  const { colors } = useThemeStore();
+
   if (!expiresAt) return null;
 
   const days = getDaysUntilExpiry(expiresAt)!;
@@ -17,28 +20,24 @@ export function ExpiryBadge({ expiresAt }: ExpiryBadgeProps) {
 
   if (days < 0) {
     label = '만료됨';
-    bg = '#e5e7eb';
-    textColor = '#4b5563';
-  } else if (days === 0) {
-    label = 'D-day';
-    bg = '#fef2f2';
-    textColor = '#b91c1c';
-  } else if (days === 1) {
-    label = 'D-1';
-    bg = '#fef2f2';
-    textColor = '#b91c1c';
+    bg = colors.border;
+    textColor = colors.textTertiary;
+  } else if (days <= 1) {
+    label = days === 0 ? 'D-day' : 'D-1';
+    bg = colors.dangerLight;
+    textColor = colors.danger;
   } else if (days <= 3) {
     label = `D-${days}`;
-    bg = '#fff7ed';
-    textColor = '#c2410c';
+    bg = colors.warningLight;
+    textColor = colors.warning;
   } else if (days <= 7) {
     label = `D-${days}`;
-    bg = '#fefce8';
-    textColor = '#a16207';
+    bg = colors.cautionLight;
+    textColor = colors.caution;
   } else {
     label = `D-${days}`;
-    bg = '#f0fdf4';
-    textColor = '#15803d';
+    bg = colors.successLight;
+    textColor = colors.success;
   }
 
   return (

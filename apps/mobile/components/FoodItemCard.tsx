@@ -5,12 +5,12 @@ import { ExpiryBadge } from './ExpiryBadge';
 import { useDeleteFoodItem, useUpdateFoodItem } from '../hooks/useFoodItems';
 import { router } from 'expo-router';
 import { getFoodEmoji } from '../constants/foodEmoji';
+import { Ionicons } from '@expo/vector-icons';
+import { useThemeStore } from '../store/theme.store';
 
 interface FoodItemCardProps {
   item: FoodItem;
 }
-
-import { Ionicons } from '@expo/vector-icons';
 
 const LOCATION_ICON_MAP: Record<string, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
   냉장: { name: 'snow-outline', color: '#3b82f6' },
@@ -20,6 +20,7 @@ const LOCATION_ICON_MAP: Record<string, { name: keyof typeof Ionicons.glyphMap; 
 };
 
 export function FoodItemCard({ item }: FoodItemCardProps) {
+  const { colors } = useThemeStore();
   const deleteMutation = useDeleteFoodItem();
   const updateMutation = useUpdateFoodItem();
 
@@ -40,15 +41,22 @@ export function FoodItemCard({ item }: FoodItemCardProps) {
 
   return (
     <TouchableOpacity
-      className="bg-white rounded-2xl p-4 mb-3 shadow-sm border border-gray-100"
+      style={{
+        backgroundColor: colors.bgCard,
+        borderRadius: 16,
+        padding: 16,
+        marginBottom: 12,
+        borderWidth: 1,
+        borderColor: colors.borderLight,
+      }}
       onPress={() => router.push(`/(tabs)/edit?id=${item.id}`)}
       activeOpacity={0.7}
     >
-      <View className="flex-row items-start justify-between">
-        <View className="flex-1">
-          <View className="flex-row items-center gap-2 mb-1">
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <View style={{ flex: 1 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <Text style={{ fontSize: 18 }}>{getFoodEmoji(item.name, item.category)}</Text>
-            <Text className="text-base font-semibold text-gray-900">
+            <Text style={{ fontSize: 16, fontWeight: '600', color: colors.text }}>
               {item.name}
             </Text>
             {item.location && LOCATION_ICON_MAP[item.location] && (
@@ -60,37 +68,57 @@ export function FoodItemCard({ item }: FoodItemCardProps) {
             )}
           </View>
 
-          <View className="flex-row items-center gap-2">
-            <Text className="text-xs text-gray-500 bg-gray-100 rounded-full px-2 py-0.5">
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text
+              style={{
+                fontSize: 12,
+                color: colors.textSecondary,
+                backgroundColor: colors.bgSecondary,
+                borderRadius: 999,
+                paddingHorizontal: 8,
+                paddingVertical: 2,
+                overflow: 'hidden',
+              }}
+            >
               {CATEGORY_LABELS[item.category]}
             </Text>
-            <Text className="text-xs text-gray-500">
+            <Text style={{ fontSize: 12, color: colors.textSecondary }}>
               {item.quantity} {item.unit}
             </Text>
           </View>
 
           {item.memo ? (
-            <Text className="text-xs text-gray-400 mt-1" numberOfLines={1}>
+            <Text style={{ fontSize: 12, color: colors.textTertiary, marginTop: 4 }} numberOfLines={1}>
               {item.memo}
             </Text>
           ) : null}
         </View>
 
-        <View className="items-end gap-2">
+        <View style={{ alignItems: 'flex-end', gap: 8 }}>
           <ExpiryBadge expiresAt={item.expiresAt} />
 
-          <View className="flex-row gap-2 mt-2">
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
             <TouchableOpacity
-              className="bg-primary-500 rounded-lg px-3 py-1.5"
+              style={{
+                backgroundColor: colors.primary,
+                borderRadius: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+              }}
               onPress={handleConsume}
             >
-              <Text className="text-white text-xs font-medium">소비</Text>
+              <Text style={{ color: colors.textInverse, fontSize: 12, fontWeight: '500' }}>소비</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              className="bg-red-50 rounded-lg px-3 py-1.5"
+              style={{
+                backgroundColor: colors.dangerLight,
+                borderRadius: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 6,
+              }}
               onPress={handleDelete}
             >
-              <Text className="text-red-500 text-xs font-medium">삭제</Text>
+              <Text style={{ color: colors.danger, fontSize: 12, fontWeight: '500' }}>삭제</Text>
             </TouchableOpacity>
           </View>
         </View>

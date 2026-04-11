@@ -77,6 +77,7 @@ export function useCreateListFromRecommendations() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['shopping-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['shopping-recommendations'] });
     },
   });
 }
@@ -183,6 +184,7 @@ export function usePurchaseShoppingItem() {
       queryClient.invalidateQueries({ queryKey: ['shopping-lists'] });
       queryClient.invalidateQueries({ queryKey: ['shopping-list'] });
       queryClient.invalidateQueries({ queryKey: ['food-items'] });
+      queryClient.invalidateQueries({ queryKey: ['shopping-recommendations'] });
     },
   });
 }

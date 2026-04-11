@@ -207,9 +207,12 @@ freshbox/                        ← 모노레포 루트
   - [x] `RecommendationCard.tsx`: `REASON_STYLES` → 동적 테마 색상
   - [x] `useShopping.ts`: 추천→리스트 생성, 구매 완료 시 `shopping-recommendations` 캐시 갱신 추가
 
-### 남은 작업 — UI 개선
-- [ ] 온보딩/튜토리얼 플로우
-- [ ] 로그인 화면 브랜딩 강화
+- [x] **온보딩 튜토리얼 + 로그인 브랜딩 개선** (2026-04-11)
+  - [x] `store/onboarding.store.ts`: Zustand + AsyncStorage 온보딩 상태 관리
+  - [x] `app/modals/onboarding.tsx`: 4페이지 스와이프 튜토리얼 (냉장고/영수증/장보기/알림)
+  - [x] `app/_layout.tsx`: 첫 로그인 시 온보딩 모달 자동 표시
+  - [x] `app/(auth)/login.tsx`: 기능 하이라이트 3줄 + 간편 로그인 구분선
+  - [x] `app/(tabs)/settings.tsx`: "앱 사용 가이드" 링크 (튜토리얼 다시 보기)
 
 ### 남은 작업 — OAuth / 알림
 - [ ] 카카오 개발자 앱 등록 → `KAKAO_CLIENT_ID` 입력 후 E2E 테스트

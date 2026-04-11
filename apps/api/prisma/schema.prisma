@@ -19,6 +19,7 @@ model User {
   updatedAt     DateTime       @updatedAt
   foodItems     FoodItem[]
   refrigerators Refrigerator[]
+  shoppingLists ShoppingList[]
 }
 
 model Refrigerator {
@@ -92,6 +93,37 @@ enum StorageMethod {
   REFRIGERATED
   FROZEN
   ROOM_TEMP
+}
+
+model ShoppingList {
+  id            String         @id @default(cuid())
+  name          String?
+  suggestedDate DateTime?
+  isCompleted   Boolean        @default(false)
+  userId        String
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items         ShoppingItem[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@index([userId])
+}
+
+model ShoppingItem {
+  id             String       @id @default(cuid())
+  name           String
+  category       Category?
+  quantity       Float        @default(1)
+  unit           String       @default("개")
+  isPurchased    Boolean      @default(false)
+  isRecommended  Boolean      @default(false)
+  reason         String?
+  shoppingListId String
+  shoppingList   ShoppingList @relation(fields: [shoppingListId], references: [id], onDelete: Cascade)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([shoppingListId])
 }
 
 enum Category {

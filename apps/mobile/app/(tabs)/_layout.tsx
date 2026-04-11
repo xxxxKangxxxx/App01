@@ -42,6 +42,16 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="shopping"
+        options={{
+          title: '쇼핑',
+          headerTitle: '장보기',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="cart-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="alerts"
         options={{
           title: '알림',
@@ -73,6 +83,13 @@ export default function TabsLayout() {
         options={{
           href: null,
           headerTitle: '식재료 수정',
+        }}
+      />
+      <Tabs.Screen
+        name="shopping-history"
+        options={{
+          href: null,
+          headerTitle: '지난 장보기',
         }}
       />
     </Tabs>

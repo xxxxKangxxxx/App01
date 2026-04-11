@@ -9,6 +9,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { RefrigeratorsModule } from './refrigerators/refrigerators.module';
 import { ReceiptModule } from './receipt/receipt.module';
 import { ShelfLifeModule } from './shelf-life/shelf-life.module';
+import { ShoppingModule } from './shopping/shopping.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ShelfLifeModule } from './shelf-life/shelf-life.module';
     RefrigeratorsModule,
     ReceiptModule,
     ShelfLifeModule,
+    ShoppingModule,
   ],
 })
 export class AppModule {}

@@ -44,7 +44,7 @@ freshbox/                        ← 모노레포 루트
 
 ---
 
-## 현재 개발 상태 (2026-03-15 업데이트, 3차)
+## 현재 개발 상태 (2026-04-11 업데이트, 4차)
 
 ### 완료된 작업
 - [x] 모노레포 초기화 (pnpm workspaces + Turborepo)
@@ -182,6 +182,21 @@ freshbox/                        ← 모노레포 루트
   - [x] ExpiryBadge: NativeWind className → inline styles 전환
   - [x] 냉장고 3D 뷰(RefrigeratorView/FlatShelf/DoorBinColumn)는 냉장고 자체 색상 사용 — 테마 변경 불필요
 
+- [x] **장보기 추천 — 규칙 기반 쇼핑 리스트** (2026-04-11)
+  - [x] Prisma: `ShoppingList` + `ShoppingItem` 모델 추가, `User` 관계 추가
+  - [x] 공유 타입: `ShoppingList`, `ShoppingItem`, `RecommendedItem`, `ShoppingRecommendationResponse` 등 10개 타입 추가
+  - [x] API: `shopping` 모듈 — CRUD + 추천 알고리즘 + 구매→냉장고 추가
+  - [x] API: `ShoppingRecommendationService` — 소비 이력 패턴 분석 (단골 감지, 구매 주기, 3가지 추천 사유)
+  - [x] API: 12개 엔드포인트 (`GET /recommendations`, `GET/POST/PATCH/DELETE /lists`, 아이템 CRUD, `POST /purchase`)
+  - [x] 모바일: `shoppingApi` 서비스 + `useShopping.ts` React Query 훅 11개
+  - [x] 모바일: 4탭→5탭 변경 (냉장고/추가/쇼핑/알림/설정), `cart-outline` 아이콘
+  - [x] 모바일: `shopping.tsx` — 날짜 제안 카드 + 추천 목록 + 장보기 체크리스트 + 수동 추가
+  - [x] 모바일: `shopping-history.tsx` — 완료된 장보기 이력 (숨김 라우트)
+  - [x] 모바일: 컴포넌트 4개 (`SuggestedDateCard`, `RecommendationCard`, `ShoppingItemRow`, `AddItemInline`)
+  - [x] 구매 체크 시 "냉장고에 추가?" Alert → `FoodItem` 자동 생성
+  - [x] 다크모드 완전 지원 (모든 컴포넌트 `useThemeStore()` 사용)
+  - [x] 빈 상태: "장보기 추천이 없어요 / 식재료를 추가하고 소비하면 맞춤 추천해드려요"
+
 ### 남은 작업 — UI 개선
 - [ ] 온보딩/튜토리얼 플로우
 - [ ] 로그인 화면 브랜딩 강화
@@ -200,9 +215,12 @@ freshbox/                        ← 모노레포 루트
 ### ~~2. 유통기한 자동 제안~~ → 완료 (2026-04-02)
 > 식재료 이름 입력 시 ShelfLife DB를 활용하여 유통기한 자동 제안
 
+### ~~3. 장보기 추천~~ → 완료 (2026-04-11)
+> 소비 이력 패턴 분석 → 단골 식재료 감지 → 쇼핑 리스트 자동 생성 + 장보기 날짜 추천 (규칙 기반, Claude API 미사용)
+
 ---
 
-### 3. 레시피 추천
+### 4. 레시피 추천
 > 냉장고에 있는 식재료로 만들 수 있는 요리와 레시피를 AI가 추천
 
 **필요한 작업**
@@ -212,19 +230,14 @@ freshbox/                        ← 모노레포 루트
 
 ---
 
-### 4. 장보기 추천 — 쇼핑 리스트 & 날짜 제안
-> 소비·구매 패턴을 분석해 다음 장보기 날짜와 필요한 쇼핑 리스트를 추천
-
-**필요한 작업**
-- [ ] Prisma 스키마: `ShoppingList` 모델 추가
-- [ ] API 서버에 `/ai/shopping-suggestion` + `/shopping-lists` CRUD 추가
-- [ ] 모바일: 쇼핑 리스트 화면 (`app/(tabs)/shopping.tsx`)
+### 5. 장보기 추천 AI 강화 (추후)
+> 현재 규칙 기반 추천을 Claude API로 고도화 — 레시피 연계, 계절 추천 등
 
 ---
 
 ## 신규 기능 공통 사항
 
-### Claude API 연동 구조
+### Claude API 연동 구조 (레시피 추천 시 사용 예정)
 ```
 모바일 → 서버 AI 엔드포인트 → Claude API (Anthropic SDK) → 결과 반환 → 모바일
 ```
@@ -232,10 +245,11 @@ freshbox/                        ← 모노레포 루트
 - `@anthropic-ai/sdk` 를 `apps/api`에 추가
 - `.env`에 `ANTHROPIC_API_KEY` 추가
 
-### 네비게이션 탭 구성 변경 (예정)
+### 네비게이션 탭 구성
 ```
-현재: 냉장고 | 추가 | 알림 | 설정   (Ionicons: snow-outline / add-circle-outline / notifications-outline / settings-outline)
-변경: 냉장고 | 스캔 | 레시피 | 쇼핑 | 설정
+현재: 냉장고 | 추가 | 쇼핑 | 알림 | 설정   (5탭)
+      snow-outline / add-circle-outline / cart-outline / notifications-outline / settings-outline
+향후: 레시피 탭 추가 시 재구성 예정
 ```
 
 ---
@@ -281,8 +295,11 @@ cd /Users/kang-yeongmo/App/freshbox/apps/mobile && pnpm dev   # JS만 변경
 | `receipt/receipt.controller.ts` | `POST /api/receipt/parse` |
 | `shelf-life/shelf-life.service.ts` | 유통기한 DB 조회 (정확/부분/카테고리 폴백) |
 | `shelf-life/shelf-life.controller.ts` | `GET /api/shelf-life`, `GET /api/shelf-life/search` |
+| `shopping/shopping.controller.ts` | 장보기 리스트 CRUD + 아이템 CRUD + 구매→냉장고 추가 |
+| `shopping/shopping.service.ts` | ShoppingList/ShoppingItem CRUD + 추천→리스트 자동 생성 |
+| `shopping/shopping-recommendation.service.ts` | 소비 이력 패턴 분석 → 단골 감지 → 추천 생성 |
 | `prisma/prisma.service.ts` | PrismaClient 싱글턴 |
-| `prisma/schema.prisma` | User + FoodItem + Refrigerator + FoodShelfLife + enums |
+| `prisma/schema.prisma` | User + FoodItem + Refrigerator + FoodShelfLife + ShoppingList + ShoppingItem + enums |
 | `prisma/seed.ts` | FoodShelfLife 시드 데이터 (120개+ 식재료 + 카테고리 폴백) |
 
 ### 모바일 (`apps/mobile/`)
@@ -294,6 +311,8 @@ cd /Users/kang-yeongmo/App/freshbox/apps/mobile && pnpm dev   # JS만 변경
 | `app/(tabs)/add.tsx` | 식재료 추가 (영수증 스캔 버튼 포함) |
 | `app/(tabs)/receipt-scan.tsx` | 영수증 스캔 — 이미지 선택 → OCR → 파싱 → 미리보기 → 일괄 추가 |
 | `app/(tabs)/edit.tsx` | 식재료 수정 (탭바 숨김, 라우트로만 접근) |
+| `app/(tabs)/shopping.tsx` | 장보기 — 추천 + 체크리스트 + 수동 추가 |
+| `app/(tabs)/shopping-history.tsx` | 지난 장보기 이력 (탭바 숨김) |
 | `app/(tabs)/alerts.tsx` | 유통기한 임박 목록 |
 | `app/(tabs)/settings.tsx` | 설정 — 프로필, 냉장고 관리, 알림, 로그아웃, 앱 정보 |
 | `app/modals/refrigerator-setup.tsx` | 냉장고 등록/수정/삭제 모달 |
@@ -305,6 +324,11 @@ cd /Users/kang-yeongmo/App/freshbox/apps/mobile && pnpm dev   # JS만 변경
 | `services/ocr.ts` | ML Kit 온디바이스 텍스트 인식 유틸 |
 | `hooks/useRefrigerators.ts` | 냉장고 CRUD React Query 훅 |
 | `hooks/useReceiptScan.ts` | 영수증 파싱 + 일괄 추가 React Query 훅 |
+| `hooks/useShopping.ts` | 장보기 추천/리스트/아이템 React Query 훅 (11개) |
+| `components/shopping/SuggestedDateCard.tsx` | 장보기 날짜 제안 헤더 카드 |
+| `components/shopping/RecommendationCard.tsx` | 추천 아이템 카드 (이모지 + 사유 뱃지) |
+| `components/shopping/ShoppingItemRow.tsx` | 체크리스트 아이템 (체크박스 + 스와이프 삭제) |
+| `components/shopping/AddItemInline.tsx` | 수동 추가 인라인 폼 |
 | `components/FoodForm.tsx` | 식재료 입력 폼 (5단계 위치 선택 UI) |
 | `components/refrigerator/fridgeConfigs.ts` | 5종 냉장고 타입별 구역/층 설정 + `splitZones()` 유틸 |
 | `components/refrigerator/FlatShelf.tsx` | 2D 선반 아이템 렌더링 (compact 모드 지원) |
@@ -324,6 +348,9 @@ cd /Users/kang-yeongmo/App/freshbox/apps/mobile && pnpm dev   # JS만 변경
 - `CreateRefrigeratorDto`, `UpdateRefrigeratorDto`
 - `ReceiptItem`, `ParseReceiptRequest/Response`, `BulkCreateFoodItemDto/Response`
 - `FoodShelfLife`, `StorageMethod`
+- `ShoppingList`, `ShoppingItem`, `RecommendedItem`, `RecommendedItemReasonType`
+- `ShoppingRecommendationResponse`
+- `CreateShoppingListDto`, `UpdateShoppingListDto`, `AddShoppingItemDto`, `UpdateShoppingItemDto`, `PurchaseAndAddDto`
 - `AuthTokens`, `LoginResponse`
 
 ---
@@ -389,6 +416,19 @@ DELETE /api/refrigerators/:id       ← 냉장고 삭제 (food items는 SetNull)
 
 # Users (JWT 필요)
 PATCH  /api/users/me/push-token     ← 푸시 토큰 저장
+
+# Shopping (JWT 필요)
+GET    /api/shopping/recommendations              ← 추천 조회 (on-the-fly 패턴 분석)
+GET    /api/shopping/lists                         ← 장보기 목록 (query: isCompleted)
+POST   /api/shopping/lists                         ← 새 리스트
+POST   /api/shopping/lists/from-recommendations    ← 추천으로 리스트 자동 생성
+GET    /api/shopping/lists/:id                     ← 단건 조회 (items 포함)
+PATCH  /api/shopping/lists/:id                     ← 수정 (name, isCompleted)
+DELETE /api/shopping/lists/:id                     ← 삭제
+POST   /api/shopping/lists/:id/items               ← 아이템 추가
+PATCH  /api/shopping/lists/:id/items/:itemId       ← 아이템 수정 (isPurchased 등)
+DELETE /api/shopping/lists/:id/items/:itemId       ← 아이템 삭제
+POST   /api/shopping/lists/:id/items/:itemId/purchase  ← 구매 완료 + 냉장고 추가
 ```
 
 ---
@@ -433,7 +473,7 @@ PATCH  /api/users/me/push-token     ← 푸시 토큰 저장
 
 ```
 User: id, email, name, kakaoId, naverId, googleId, pushToken, timestamps
-      → refrigerators Refrigerator[]
+      → refrigerators Refrigerator[], shoppingLists ShoppingList[]
 
 FoodItem: id, name, category(enum), quantity, unit, purchasedAt, expiresAt,
           location(레거시), memo, isConsumed, timestamps, userId(FK)
@@ -446,5 +486,11 @@ FoodShelfLife: id, name, category(enum), defaultDays(Int), storageMethod(Storage
 
 Category enum: VEGETABLES, FRUITS, MEAT, SEAFOOD, DAIRY, BEVERAGE, CONDIMENT, FROZEN, OTHER
 RefrigeratorType enum: STANDARD, SIDE_BY_SIDE, FRENCH_DOOR, FREEZER, KIMCHI
+ShoppingList: id, name?, suggestedDate?, isCompleted, userId(FK), timestamps
+              → items ShoppingItem[]
+
+ShoppingItem: id, name, category?(enum), quantity, unit, isPurchased, isRecommended, reason?,
+              shoppingListId(FK→ShoppingList), timestamps
+
 StorageMethod enum: REFRIGERATED, FROZEN, ROOM_TEMP
 ```

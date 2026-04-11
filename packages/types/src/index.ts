@@ -211,3 +211,88 @@ export interface FoodShelfLife {
   defaultDays: number;
   storageMethod: StorageMethod;
 }
+
+// ── Shopping ──
+
+export interface ShoppingList {
+  id: string;
+  name?: string | null;
+  suggestedDate?: string | null;
+  isCompleted: boolean;
+  userId: string;
+  items?: ShoppingItem[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ShoppingItem {
+  id: string;
+  name: string;
+  category?: Category | null;
+  quantity: number;
+  unit: string;
+  isPurchased: boolean;
+  isRecommended: boolean;
+  reason?: string | null;
+  shoppingListId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type RecommendedItemReasonType =
+  | 'staple_missing'
+  | 'expiring_repurchase'
+  | 'recent_consumed';
+
+export interface RecommendedItem {
+  name: string;
+  category?: Category | null;
+  quantity: number;
+  unit: string;
+  reason: string;
+  reasonType: RecommendedItemReasonType;
+  purchaseCount: number;
+  avgIntervalDays?: number | null;
+  predictedNextDate?: string | null;
+}
+
+export interface ShoppingRecommendationResponse {
+  recommendations: RecommendedItem[];
+  suggestedDate: string | null;
+  suggestedDateReason: string | null;
+  stapleCount: number;
+}
+
+export interface CreateShoppingListDto {
+  name?: string;
+  suggestedDate?: string;
+}
+
+export interface UpdateShoppingListDto {
+  name?: string;
+  isCompleted?: boolean;
+  suggestedDate?: string;
+}
+
+export interface AddShoppingItemDto {
+  name: string;
+  category?: Category;
+  quantity?: number;
+  unit?: string;
+  isRecommended?: boolean;
+  reason?: string;
+}
+
+export interface UpdateShoppingItemDto {
+  name?: string;
+  quantity?: number;
+  unit?: string;
+  isPurchased?: boolean;
+}
+
+export interface PurchaseAndAddDto {
+  refrigeratorId?: string;
+  zone?: string;
+  shelf?: number;
+  expiresAt?: string;
+}

@@ -95,6 +95,42 @@ export const shelfLifeApi = {
   search: (query: string) => apiClient.get('/shelf-life/search', { params: { q: query } }),
 };
 
+// Shopping API
+export const shoppingApi = {
+  getRecommendations: () =>
+    apiClient.get('/shopping/recommendations'),
+
+  getLists: (params?: { isCompleted?: string }) =>
+    apiClient.get('/shopping/lists', { params }),
+
+  getList: (id: string) =>
+    apiClient.get(`/shopping/lists/${id}`),
+
+  createList: (data: unknown) =>
+    apiClient.post('/shopping/lists', data),
+
+  createListFromRecommendations: () =>
+    apiClient.post('/shopping/lists/from-recommendations'),
+
+  updateList: (id: string, data: unknown) =>
+    apiClient.patch(`/shopping/lists/${id}`, data),
+
+  deleteList: (id: string) =>
+    apiClient.delete(`/shopping/lists/${id}`),
+
+  addItem: (listId: string, data: unknown) =>
+    apiClient.post(`/shopping/lists/${listId}/items`, data),
+
+  updateItem: (listId: string, itemId: string, data: unknown) =>
+    apiClient.patch(`/shopping/lists/${listId}/items/${itemId}`, data),
+
+  deleteItem: (listId: string, itemId: string) =>
+    apiClient.delete(`/shopping/lists/${listId}/items/${itemId}`),
+
+  purchaseItem: (listId: string, itemId: string, data?: unknown) =>
+    apiClient.post(`/shopping/lists/${listId}/items/${itemId}/purchase`, data ?? {}),
+};
+
 // Auth API
 export const authApi = {
   refresh: (refreshToken: string) =>

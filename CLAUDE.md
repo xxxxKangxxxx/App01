@@ -214,6 +214,28 @@ freshbox/                        ← 모노레포 루트
   - [x] `app/(auth)/login.tsx`: 기능 하이라이트 3줄 + 간편 로그인 구분선
   - [x] `app/(tabs)/settings.tsx`: "앱 사용 가이드" 링크 (튜토리얼 다시 보기)
 
+- [x] **식재료 검색/필터** (2026-04-11)
+  - [x] API: `GET /api/food-items`에 `search`, `refrigeratorId` 쿼리 파라미터 추가
+  - [x] 모바일: 홈 화면 헤더 아래 검색바 (이름 실시간 검색)
+  - [x] 모바일: 필터 토글 버튼 (활성 필터 수 뱃지 표시)
+  - [x] 모바일: 3종 필터 칩 — 상태(여유/임박/만료), 카테고리(9종), 냉장고별(미분류 포함)
+  - [x] 모바일: 검색/필터 활성 시 결과 리스트 전환 (이모지 + 이름 + 카테고리/냉장고/수량 + D-day)
+  - [x] 모바일: 초기화 버튼 + 빈 결과 안내 + 다크모드 지원
+  - [x] 클라이언트 사이드 필터링 (기존 데이터 활용, 네트워크 없이 즉시 반응)
+
+- [x] **소비 통계 + 탭 네비게이션 개편** (2026-04-11)
+  - [x] Prisma: `FoodItem`에 `consumedAt`, `deletedAt` 필드 추가 (soft delete)
+  - [x] API: `GET /api/food-items/stats/monthly?year=&month=` 통계 엔드포인트
+  - [x] API: 소비 시 `consumedAt` 자동 기록, 삭제 → soft delete(`deletedAt`)
+  - [x] API: `findAll`, `findOne`, `findExpiringSoon` soft delete 필터링
+  - [x] 공유 타입: `MonthlyStatsResponse`, `CategoryStat`, `TopItem` 등 추가
+  - [x] 모바일: 탭 변경 — 알림 탭 → **통계 탭**(`stats-chart-outline`)으로 교체
+  - [x] 모바일: 알림은 홈 헤더 우측 벨 아이콘으로 이동 (임박 수 뱃지)
+  - [x] 모바일: `stats.tsx` — 월별 통계 화면 (요약 카드, 활용률 바, 카테고리 차트, TOP 랭킹)
+  - [x] 모바일: 년도/월 선택 모달 (4x3 월 그리드 + 년도 좌우) + 좌우 화살표 이동
+  - [x] 모바일: 식재료 "삭제" → "폐기"로 용어 통일 (alerts.tsx, FoodItemCard.tsx)
+  - [x] `hooks/useMonthlyStats.ts`, `services/api.ts`에 `foodItemsStatsApi` 추가
+
 ### 남은 작업 — OAuth / 알림
 - [ ] 카카오 개발자 앱 등록 → `KAKAO_CLIENT_ID` 입력 후 E2E 테스트
 - [ ] 네이버 개발자 앱 등록 → `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 입력 후 E2E 테스트
@@ -231,20 +253,92 @@ freshbox/                        ← 모노레포 루트
 ### ~~3. 장보기 추천~~ → 완료 (2026-04-11)
 > 소비 이력 패턴 분석 → 단골 식재료 감지 → 쇼핑 리스트 자동 생성 + 장보기 날짜 추천 (규칙 기반, Claude API 미사용)
 
+### ~~4. 식재료 검색/필터~~ → 완료 (2026-04-11)
+> 홈 화면에 검색바 + 상태/카테고리/냉장고 필터 칩. 클라이언트 사이드 즉시 필터링
+
+### ~~5. 소비 통계~~ → 완료 (2026-04-11)
+> 월별 구매/소비/폐기 통계 + 카테고리 분포 + TOP 랭킹. soft delete로 폐기 데이터 보존
+
 ---
 
-### 4. 레시피 추천
+### 6. 레시피 추천
 > 냉장고에 있는 식재료로 만들 수 있는 요리와 레시피를 AI가 추천
 
 **필요한 작업**
-- [ ] API 서버에 `/ai/recipe-suggestions` 엔드포인트 추가
-- [ ] 모바일: 레시피 추천 탭 (`app/(tabs)/recipes.tsx`)
-- [ ] 레시피 → "이 재료 소비" 버튼으로 `isConsumed: true` 일괄 처리
+- [ ] `@anthropic-ai/sdk` 설치 + `.env`에 `ANTHROPIC_API_KEY` 추가
+- [ ] API: `ai` 모듈 — `POST /api/ai/recipe-suggestions` (냉장고 식재료 목록 → Claude API → 레시피 추천)
+- [ ] API: 프롬프트 설계 (보유 식재료, 카테고리, 수량 전달 → 요리명/재료/조리법/난이도 반환)
+- [ ] 공유 타입: `RecipeSuggestion`, `RecipeIngredient` 등
+- [ ] 모바일: 레시피 추천 화면 (탭 or 홈에서 진입)
+- [ ] 모바일: 레시피 카드 (요리명, 소요 시간, 난이도, 재료 목록)
+- [ ] 모바일: "이 재료 소비" 버튼 → `isConsumed: true` + `consumedAt` 일괄 처리
+- [ ] 로딩 UX (Claude API 응답 대기 중 스켈레톤/스피너)
 
 ---
 
-### 5. 장보기 추천 AI 강화 (추후)
+### 7. 장보기 추천 AI 강화 (추후)
 > 현재 규칙 기반 추천을 Claude API로 고도화 — 레시피 연계, 계절 추천 등
+
+**필요한 작업**
+- [ ] 레시피 추천과 연계: "이 레시피에 부족한 재료" → 장보기 리스트 자동 추가
+- [ ] 계절/날씨 기반 추천 (현재 월, 제철 식재료)
+- [ ] 영양 균형 분석 (최근 소비 패턴 기반 부족 영양소 추천)
+
+---
+
+### 8. 냉장고 공유 (가족 기능)
+> 가족 구성원이 같은 냉장고를 공유하여 함께 식재료를 관리
+
+**필요한 작업**
+- [ ] Prisma: `RefrigeratorMember` 모델 (userId + refrigeratorId + role) 또는 다대다 관계
+- [ ] API: 냉장고 초대/수락/탈퇴 엔드포인트
+- [ ] API: 공유 냉장고의 식재료 조회 시 모든 멤버의 아이템 포함
+- [ ] 모바일: 냉장고 설정에서 "멤버 초대" (초대 코드 or 링크)
+- [ ] 모바일: 멤버 목록/관리 UI
+- [ ] 알림: 공유 냉장고 변경 사항 푸시 알림
+
+---
+
+### 9. 알림 시간 커스터마이징
+> 현재 오전 9시 고정 → 사용자가 원하는 시간과 D-day 기준을 설정
+
+**필요한 작업**
+- [ ] Prisma: `User`에 `notifyTime`, `notifyDaysBefore` 필드 추가
+- [ ] API: `PATCH /api/users/me/notification-settings`
+- [ ] API: 스케줄러에서 사용자별 알림 시간 적용 (또는 시간대별 배치)
+- [ ] 모바일: 설정 화면에 알림 시간 선택 (TimePicker) + D-day 기준 선택 (D-1, D-3, D-7)
+
+---
+
+### 10. 바코드 스캔
+> 제품 바코드를 스캔하여 식재료 정보 자동 입력
+
+**필요한 작업**
+- [ ] `expo-barcode-scanner` 또는 `expo-camera` 바코드 모드 설치
+- [ ] 외부 API 연동 (식품안전나라 OpenAPI 또는 상품 DB)
+- [ ] API: 바코드 → 상품 정보 조회 프록시 엔드포인트
+- [ ] 모바일: 추가 화면에 "바코드 스캔" 버튼 + 카메라 뷰
+- [ ] 바코드 인식 → 상품명/카테고리/유통기한 자동 채움
+
+---
+
+### 11. iOS 위젯
+> 만료 임박 식재료를 홈 화면 위젯으로 빠르게 확인
+
+**필요한 작업**
+- [ ] `expo-widgets` 또는 네이티브 WidgetKit 모듈
+- [ ] 위젯 데이터 공유 (App Groups + UserDefaults 또는 로컬 DB)
+- [ ] Small/Medium 위젯: 임박 아이템 3~5개 표시 (이모지 + 이름 + D-day)
+
+---
+
+### 12. 데이터 내보내기/백업
+> 식재료 데이터를 CSV/JSON으로 내보내기, 또는 클라우드 백업
+
+**필요한 작업**
+- [ ] API: `GET /api/food-items/export?format=csv|json` 엔드포인트
+- [ ] 모바일: 설정 → "데이터 내보내기" (공유 시트로 파일 전송)
+- [ ] (선택) iCloud/Google Drive 자동 백업
 
 ---
 
@@ -260,8 +354,9 @@ freshbox/                        ← 모노레포 루트
 
 ### 네비게이션 탭 구성
 ```
-현재: 냉장고 | 추가 | 쇼핑 | 알림 | 설정   (5탭)
-      snow-outline / add-circle-outline / cart-outline / notifications-outline / settings-outline
+현재: 냉장고 | 추가 | 쇼핑 | 통계 | 설정   (5탭)
+      snow-outline / add-circle-outline / cart-outline / stats-chart-outline / settings-outline
+      알림은 홈 헤더 우측 벨 아이콘 (숨김 라우트 `alerts.tsx`)
 향후: 레시피 탭 추가 시 재구성 예정
 ```
 

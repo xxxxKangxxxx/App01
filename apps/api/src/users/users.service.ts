@@ -37,6 +37,18 @@ export class UsersService {
     return this.prisma.user.create({ data });
   }
 
+  async linkKakaoId(userId: string, kakaoId: string) {
+    return this.prisma.user.update({ where: { id: userId }, data: { kakaoId } });
+  }
+
+  async linkNaverId(userId: string, naverId: string) {
+    return this.prisma.user.update({ where: { id: userId }, data: { naverId } });
+  }
+
+  async linkGoogleId(userId: string, googleId: string) {
+    return this.prisma.user.update({ where: { id: userId }, data: { googleId } });
+  }
+
   async updatePushToken(userId: string, pushToken: string) {
     return this.prisma.user.update({
       where: { id: userId },

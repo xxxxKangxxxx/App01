@@ -28,6 +28,12 @@ export class NaverStrategy {
       },
     });
 
+    if (response.data.error) {
+      throw new Error(
+        `Naver token error: ${response.data.error} - ${response.data.error_description}`,
+      );
+    }
+
     return response.data.access_token as string;
   }
 

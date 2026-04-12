@@ -24,6 +24,12 @@ export class AuthService {
     const profile = await this.kakaoStrategy.getProfile(accessToken);
 
     let user = await this.usersService.findByKakaoId(profile.kakaoId);
+    if (!user && profile.email) {
+      const existing = await this.usersService.findByEmail(profile.email);
+      if (existing) {
+        user = await this.usersService.linkKakaoId(existing.id, profile.kakaoId);
+      }
+    }
     if (!user) {
       user = await this.usersService.createWithKakao({
         kakaoId: profile.kakaoId,
@@ -40,6 +46,12 @@ export class AuthService {
     const profile = await this.naverStrategy.getProfile(accessToken);
 
     let user = await this.usersService.findByNaverId(profile.naverId);
+    if (!user && profile.email) {
+      const existing = await this.usersService.findByEmail(profile.email);
+      if (existing) {
+        user = await this.usersService.linkNaverId(existing.id, profile.naverId);
+      }
+    }
     if (!user) {
       user = await this.usersService.createWithNaver({
         naverId: profile.naverId,
@@ -56,6 +68,12 @@ export class AuthService {
     const profile = await this.googleStrategy.getProfile(accessToken);
 
     let user = await this.usersService.findByGoogleId(profile.googleId);
+    if (!user && profile.email) {
+      const existing = await this.usersService.findByEmail(profile.email);
+      if (existing) {
+        user = await this.usersService.linkGoogleId(existing.id, profile.googleId);
+      }
+    }
     if (!user) {
       user = await this.usersService.createWithGoogle({
         googleId: profile.googleId,

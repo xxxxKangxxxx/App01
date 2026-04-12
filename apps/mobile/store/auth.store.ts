@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import * as SecureStore from 'expo-secure-store';
 import { AuthUser } from '@freshbox/types';
+import { queryClient } from '../lib/queryClient';
 
 const ACCESS_TOKEN_KEY = 'freshbox_access_token';
 const REFRESH_TOKEN_KEY = 'freshbox_refresh_token';
@@ -44,6 +45,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   logout: async () => {
     await SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY);
     await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    queryClient.clear();
     set({ accessToken: null, refreshToken: null, user: null });
   },
 }));

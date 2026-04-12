@@ -14,6 +14,7 @@ export class KakaoStrategy {
 
   async getTokenFromCode(code: string): Promise<string> {
     const clientId = this.configService.get<string>('KAKAO_CLIENT_ID')!;
+    const clientSecret = this.configService.get<string>('KAKAO_CLIENT_SECRET')!;
     const redirectUri = this.configService.get<string>('KAKAO_REDIRECT_URI')!;
 
     const response = await axios.post(
@@ -21,6 +22,7 @@ export class KakaoStrategy {
       new URLSearchParams({
         grant_type: 'authorization_code',
         client_id: clientId,
+        client_secret: clientSecret,
         redirect_uri: redirectUri,
         code,
       }),

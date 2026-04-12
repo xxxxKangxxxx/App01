@@ -236,9 +236,27 @@ freshbox/                        ← 모노레포 루트
   - [x] 모바일: 식재료 "삭제" → "폐기"로 용어 통일 (alerts.tsx, FoodItemCard.tsx)
   - [x] `hooks/useMonthlyStats.ts`, `services/api.ts`에 `foodItemsStatsApi` 추가
 
-### 남은 작업 — OAuth / 알림
-- [ ] 카카오 개발자 앱 등록 → `KAKAO_CLIENT_ID` 입력 후 E2E 테스트
-- [ ] 네이버 개발자 앱 등록 → `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 입력 후 E2E 테스트
+- [x] **카카오 OAuth E2E 완료** (2026-04-12)
+  - [x] 카카오 개발자 앱 등록 + REST API 키/클라이언트 시크릿 발급
+  - [x] 플랫폼 키 > 카카오 로그인 리다이렉트 URI 등록
+  - [x] `kakao.strategy.ts`: `client_secret` 파라미터 추가
+  - [x] `.env`: `KAKAO_CLIENT_ID`, `KAKAO_CLIENT_SECRET` 설정
+  - [x] 시뮬레이터 E2E 로그인 테스트 성공
+
+- [x] **네이버 OAuth E2E 완료** (2026-04-12)
+  - [x] 네이버 개발자 앱 등록 + Client ID/Secret 발급
+  - [x] Callback URL 등록 (`http://localhost:3000/api/auth/naver/callback`)
+  - [x] `naver.strategy.ts`: 토큰 에러 응답 체크 추가
+  - [x] `.env`: `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 설정
+  - [x] 시뮬레이터 E2E 로그인 테스트 성공
+
+- [x] **OAuth 계정 통합 + 로그아웃 캐시 버그 수정** (2026-04-12)
+  - [x] `auth.service.ts`: 이메일 중복 시 기존 계정에 소셜 ID 자동 연결 (카카오/네이버/구글)
+  - [x] `users.service.ts`: `linkKakaoId`, `linkNaverId`, `linkGoogleId` 메서드 추가
+  - [x] `auth.store.ts`: 로그아웃 시 `queryClient.clear()` 호출 — React Query 캐시 초기화
+  - [x] `lib/queryClient.ts`: QueryClient 인스턴스 분리 (순환 참조 방지)
+
+### 남은 작업 — 알림
 - [ ] 푸시 알림 수신 테스트
 
 ---

@@ -1,7 +1,7 @@
 import '../global.css';
 import { useEffect } from 'react';
 import { Stack, router } from 'expo-router';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
 import { useAuthStore } from '../store/auth.store';
 import { useThemeStore } from '../store/theme.store';
@@ -16,11 +16,7 @@ Notifications.setNotificationHandler({
   }),
 });
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: 1, staleTime: 30_000 },
-  },
-});
+import { queryClient } from '../lib/queryClient';
 
 function RootLayoutNav() {
   const { accessToken, isLoading, loadTokens } = useAuthStore();

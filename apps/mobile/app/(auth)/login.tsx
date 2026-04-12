@@ -53,29 +53,37 @@ export default function LoginScreen() {
     }
   };
 
+  const isDark = colors.bg === '#0f172a';
+
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bgCard }}>
+    <View style={{ flex: 1, backgroundColor: isDark ? colors.bg : '#ffffff' }}>
       {/* 상단 브랜딩 */}
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 }}>
         <Image
           source={require('../../assets/logo.png')}
-          style={{ width: 112, height: 112, marginBottom: 24 }}
+          style={{ width: 120, height: 120, marginBottom: 20 }}
           resizeMode="contain"
         />
-        <Text style={{ fontSize: 30, fontWeight: '700', color: colors.text, marginBottom: 8 }}>손안의냉장고</Text>
-        <Text style={{ fontSize: 16, color: colors.textSecondary, textAlign: 'center', marginBottom: 24 }}>
+        <Text style={{ fontSize: 24, fontWeight: '700', color: colors.text, marginBottom: 6 }}>손안의냉장고</Text>
+        <Text style={{ fontSize: 15, color: colors.textSecondary, textAlign: 'center', marginBottom: 32, lineHeight: 22 }}>
           냉장고 식재료를 스마트하게 관리하세요
         </Text>
 
         {/* 기능 하이라이트 */}
-        <View style={{ gap: 10 }}>
+        <View style={{ gap: 14 }}>
           {[
             { icon: 'snow-outline' as const, text: '냉장고 식재료 한눈에 관리' },
             { icon: 'notifications-outline' as const, text: '유통기한 자동 알림' },
             { icon: 'cart-outline' as const, text: '맞춤 장보기 추천' },
           ].map((item, idx) => (
             <View key={idx} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Ionicons name={item.icon} size={18} color={colors.primary} />
+              <View style={{
+                width: 32, height: 32, borderRadius: 10,
+                backgroundColor: isDark ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.15)',
+                alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Ionicons name={item.icon} size={16} color={colors.primary} />
+              </View>
               <Text style={{ fontSize: 14, color: colors.textSecondary, fontWeight: '500' }}>{item.text}</Text>
             </View>
           ))}
@@ -93,34 +101,41 @@ export default function LoginScreen() {
 
         {/* 카카오 */}
         <TouchableOpacity
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FEE500', borderRadius: 16, paddingVertical: 16, gap: 12 }}
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FEE500', borderRadius: 14, paddingVertical: 15, gap: 10 }}
           onPress={() => handleOAuth('kakao')}
+          activeOpacity={0.8}
         >
-          <Ionicons name="chatbubble" size={20} color="#3C1E1E" />
-          <Text style={{ color: '#3C1E1E', fontSize: 16, fontWeight: '600' }}>
-            카카오로 로그인
+          <Ionicons name="chatbubble" size={18} color="#3C1E1E" />
+          <Text style={{ color: '#3C1E1E', fontSize: 15, fontWeight: '600' }}>
+            카카오로 시작하기
           </Text>
         </TouchableOpacity>
 
         {/* 네이버 */}
         <TouchableOpacity
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#03C75A', borderRadius: 16, paddingVertical: 16, gap: 12 }}
+          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#03C75A', borderRadius: 14, paddingVertical: 15, gap: 10 }}
           onPress={() => handleOAuth('naver')}
+          activeOpacity={0.8}
         >
-          <Text style={{ color: '#fff', fontSize: 18, fontWeight: '700' }}>N</Text>
-          <Text style={{ color: '#fff', fontSize: 16, fontWeight: '600' }}>
-            네이버로 로그인
+          <Text style={{ color: '#fff', fontSize: 17, fontWeight: '800' }}>N</Text>
+          <Text style={{ color: '#fff', fontSize: 15, fontWeight: '600' }}>
+            네이버로 시작하기
           </Text>
         </TouchableOpacity>
 
         {/* 구글 */}
         <TouchableOpacity
-          style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgCard, borderWidth: 1, borderColor: colors.border, borderRadius: 16, paddingVertical: 16, gap: 12 }}
+          style={{
+            flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+            backgroundColor: isDark ? colors.bgCard : '#ffffff',
+            borderWidth: 1, borderColor: colors.border, borderRadius: 14, paddingVertical: 15, gap: 10,
+          }}
           onPress={() => handleOAuth('google')}
+          activeOpacity={0.8}
         >
-          <Ionicons name="logo-google" size={20} color="#4285F4" />
-          <Text style={{ color: colors.text, fontSize: 16, fontWeight: '600' }}>
-            Google로 로그인
+          <Ionicons name="logo-google" size={18} color="#4285F4" />
+          <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600' }}>
+            Google로 시작하기
           </Text>
         </TouchableOpacity>
       </View>

@@ -257,7 +257,7 @@ freshbox/                        ← 모노레포 루트
   - [x] `lib/queryClient.ts`: QueryClient 인스턴스 분리 (순환 참조 방지)
 
 ### 남은 작업 — 알림
-- [ ] 푸시 알림 수신 테스트
+- [ ] 푸시 알림 수신 테스트 (실기기 필요 — 테스트 가이드: `docs/PUSH_NOTIFICATION_TEST.md`)
 
 ---
 
@@ -319,12 +319,15 @@ freshbox/                        ← 모노레포 루트
 
 ### 9. 알림 시간 커스터마이징
 > 현재 오전 9시 고정 → 사용자가 원하는 시간과 D-day 기준을 설정
+> 상세 계획 및 테스트 가이드: **[docs/PUSH_NOTIFICATION_TEST.md](docs/PUSH_NOTIFICATION_TEST.md)**
 
 **필요한 작업**
-- [ ] Prisma: `User`에 `notifyTime`, `notifyDaysBefore` 필드 추가
-- [ ] API: `PATCH /api/users/me/notification-settings`
-- [ ] API: 스케줄러에서 사용자별 알림 시간 적용 (또는 시간대별 배치)
-- [ ] 모바일: 설정 화면에 알림 시간 선택 (TimePicker) + D-day 기준 선택 (D-1, D-3, D-7)
+- [ ] Prisma: `User`에 `notifyEnabled(Boolean)`, `notifyTime(String "HH:mm")`, `notifyDaysBefore(Int[])` 필드 추가 + 마이그레이션
+- [ ] API: `PATCH /api/users/me/notification-settings` 엔드포인트 (JWT 보호)
+- [ ] API: `GET /api/users/me` 응답에 알림 설정 포함
+- [ ] API: 스케줄러 변경 — 매시간 Cron → 해당 시간대 유저만 필터링하여 발송, `notifyDaysBefore` 동적 조회
+- [ ] 모바일: 알림 설정 전용 UI (ON/OFF 토글 + TimePicker + D-day 다중선택 칩)
+- [ ] 모바일: 설정 변경 시 API 호출 + optimistic update
 
 ---
 

@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Stack, router } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { useAuthStore } from '../store/auth.store';
 import { useThemeStore } from '../store/theme.store';
 import { useOnboardingStore } from '../store/onboarding.store';
@@ -76,7 +77,8 @@ async function registerForPushNotifications() {
   const { status } = await Notifications.requestPermissionsAsync();
   if (status !== 'granted') return;
 
-  const tokenData = await Notifications.getExpoPushTokenAsync();
+  const projectId = Constants.expoConfig?.extra?.eas?.projectId;
+  const tokenData = await Notifications.getExpoPushTokenAsync({ projectId });
   const pushToken = tokenData.data;
 
   try {

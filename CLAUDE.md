@@ -44,7 +44,7 @@ freshbox/                        ← 모노레포 루트
 
 ---
 
-## 현재 개발 상태 (2026-04-11 업데이트, 4차)
+## 현재 개발 상태 (2026-04-22 업데이트, 5차)
 
 ### 완료된 작업
 - [x] 모노레포 초기화 (pnpm workspaces + Turborepo)
@@ -256,8 +256,20 @@ freshbox/                        ← 모노레포 루트
   - [x] `auth.store.ts`: 로그아웃 시 `queryClient.clear()` 호출 — React Query 캐시 초기화
   - [x] `lib/queryClient.ts`: QueryClient 인스턴스 분리 (순환 참조 방지)
 
-### 남은 작업 — 알림
-- [ ] 푸시 알림 수신 테스트 (실기기 필요 — 테스트 가이드: `docs/PUSH_NOTIFICATION_TEST.md`)
+- [x] **푸시 알림 테스트 준비** (2026-04-22)
+  - [x] EAS 프로젝트 생성 + `projectId` 발급 (`f86a4053-...`)
+  - [x] `app.json`: `extra.eas.projectId` + `owner` 추가
+  - [x] `_layout.tsx`: `getExpoPushTokenAsync({ projectId })` 전달하도록 수정
+  - [x] 푸시 알림 테스트 문서 Dev Build 전용으로 재작성
+
+### 남은 작업 — 푸시 알림 실기기 테스트
+- [ ] iOS APNs 키 업로드 (Apple Developer 유료 계정 필요)
+- [ ] 권한 플로우 보강 (거부 시 `Linking.openSettings()` 유도)
+- [ ] Dev Build 생성 (`expo run:ios --device`)
+- [ ] 토큰 등록 + 즉시 발송 + Receipt 확인 + 상태별 체크
+- [ ] 서버: Receipt 조회 + `DeviceNotRegistered` 토큰 정리
+- [ ] 서버: Cron 타임존 `Asia/Seoul` 명시
+- [ ] 모바일: 알림 탭 리스너 (`addNotificationResponseReceivedListener`)
 
 ---
 

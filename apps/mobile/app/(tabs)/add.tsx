@@ -14,7 +14,7 @@ export default function AddScreen() {
   const handleSubmit = (data: CreateFoodItemDto) => {
     createMutation.mutate(data, {
       onSuccess: () => {
-        router.replace('/(tabs)/');
+        router.replace('/');
       },
     });
   };

@@ -55,7 +55,7 @@ export default function ShoppingItemRow({ item, onToggle, onDelete }: Props) {
           bottom: 0,
           right: 0,
           width: 80,
-          backgroundColor: '#ef4444',
+          backgroundColor: colors.danger,
           alignItems: 'center',
           justifyContent: 'center',
           borderRadius: 12,

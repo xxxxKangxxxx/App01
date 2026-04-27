@@ -17,6 +17,8 @@ import { FlatShelf } from './FlatShelf';
 import { DoorBinColumn } from './DoorBinColumn';
 import { REFRIGERATOR_TYPE_LABELS } from '@freshbox/types';
 import { getDaysUntilExpiry } from '../../utils/date';
+import { useThemeStore } from '../../store/theme.store';
+import type { ThemeColors } from '../../constants/colors';
 
 interface RefrigeratorViewProps {
   refrigerator: Refrigerator;
@@ -30,6 +32,33 @@ function shadeColor(hex: string, amount: number): string {
   const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amount));
   const b = Math.min(255, Math.max(0, (num & 0x0000ff) + amount));
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}
+
+function getReadableTextColor(hex: string): string {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = (num >> 16) & 0xff;
+  const g = (num >> 8) & 0xff;
+  const b = num & 0xff;
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.58 ? '#334155' : '#f8fafc';
+}
+
+function isDarkTheme(colors: ThemeColors): boolean {
+  return colors.bg === '#0f172a';
+}
+
+function getFridgeSurfaceColors(colors: ThemeColors) {
+  const isDark = isDarkTheme(colors);
+
+  return {
+    interior: isDark ? '#172334' : '#dce8f0',
+    freezer: isDark ? '#1b2c42' : '#d4e2ee',
+    doorBin: isDark ? '#1b2a3a' : '#e2eaf0',
+    glass: isDark ? 'rgba(96,165,250,0.28)' : 'rgba(200,220,235,0.7)',
+    glassGlow: isDark ? 'rgba(147,197,253,0.12)' : 'rgba(255,255,255,0.15)',
+    ledStart: isDark ? 'rgba(96,165,250,0.2)' : 'rgba(220,240,255,0.95)',
+    ledMid: isDark ? 'rgba(96,165,250,0.08)' : 'rgba(200,225,245,0.4)',
+  };
 }
 
 function getItemStats(items: FoodItem[]) {
@@ -55,13 +84,15 @@ function getItemStats(items: FoodItem[]) {
 }
 
 // ─── Glass Shelf Divider ───────────────────────────────────────────
-function GlassShelfDivider() {
+function GlassShelfDivider({ colors }: { colors: ThemeColors }) {
+  const surface = getFridgeSurfaceColors(colors);
+
   return (
     <View>
       <View
         style={{
           height: 2,
-          backgroundColor: 'rgba(200,220,235,0.7)',
+          backgroundColor: surface.glass,
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 2 },
           shadowOpacity: 0.08,
@@ -69,7 +100,7 @@ function GlassShelfDivider() {
         }}
       />
       <LinearGradient
-        colors={['rgba(255,255,255,0.15)', 'rgba(255,255,255,0)']}
+        colors={[surface.glassGlow, 'rgba(255,255,255,0)']}
         style={{ height: 3 }}
       />
     </View>
@@ -77,12 +108,14 @@ function GlassShelfDivider() {
 }
 
 // ─── Zone Header ────────────────────────────────────────────────────
-function ZoneHeader({ zone, items }: { zone: ZoneConfig; items: FoodItem[] }) {
+function ZoneHeader({ zone, items, colors }: { zone: ZoneConfig; items: FoodItem[]; colors: ThemeColors }) {
   const isFreezer = zone.key.includes('냉동') || zone.key.includes('서랍');
   const iconName = isFreezer ? 'snow' : zone.isDrawer ? 'file-tray-outline' : 'cube-outline';
   const zoneItems = items.filter((i) => i.zone === zone.key);
   const { expiring, expired } = getItemStats(zoneItems);
   const urgentCount = expiring + expired;
+  const urgentColor = expired > 0 ? colors.danger : colors.warning;
+  const urgentBg = expired > 0 ? colors.dangerLight : colors.warningLight;
 
   return (
     <View
@@ -94,11 +127,11 @@ function ZoneHeader({ zone, items }: { zone: ZoneConfig; items: FoodItem[] }) {
         gap: 4,
       }}
     >
-      <Ionicons name={iconName as any} size={11} color="#6b7280" />
-      <Text style={{ fontSize: 10, fontWeight: '700', color: '#6b7280', flex: 1 }}>
+      <Ionicons name={iconName as any} size={11} color={colors.textSecondary} />
+      <Text style={{ fontSize: 10, fontWeight: '700', color: colors.textSecondary, flex: 1 }}>
         {zone.label}
       </Text>
-      <Text style={{ fontSize: 9, color: '#9ca3af', fontWeight: '500' }}>
+      <Text style={{ fontSize: 9, color: colors.textTertiary, fontWeight: '500' }}>
         {zoneItems.length}개
       </Text>
       {urgentCount > 0 && (
@@ -106,7 +139,7 @@ function ZoneHeader({ zone, items }: { zone: ZoneConfig; items: FoodItem[] }) {
           style={{
             flexDirection: 'row',
             alignItems: 'center',
-            backgroundColor: expired > 0 ? '#fef2f2' : '#fff7ed',
+            backgroundColor: urgentBg,
             borderRadius: 8,
             paddingHorizontal: 4,
             paddingVertical: 1,
@@ -116,13 +149,13 @@ function ZoneHeader({ zone, items }: { zone: ZoneConfig; items: FoodItem[] }) {
           <Ionicons
             name="alert-circle"
             size={10}
-            color={expired > 0 ? '#ef4444' : '#f97316'}
+            color={urgentColor}
           />
           <Text
             style={{
               fontSize: 9,
               fontWeight: '700',
-              color: expired > 0 ? '#ef4444' : '#f97316',
+              color: urgentColor,
             }}
           >
             {urgentCount}
@@ -138,23 +171,25 @@ interface FridgeInteriorProps {
   zones: ZoneConfig[];
   items: FoodItem[];
   frameColor: string;
+  colors: ThemeColors;
   onShelfPress?: (zone: ZoneConfig, shelf: number, items: FoodItem[]) => void;
 }
 
-function FridgeInterior({ zones, items, frameColor, onShelfPress }: FridgeInteriorProps) {
+function FridgeInterior({ zones, items, frameColor, colors, onShelfPress }: FridgeInteriorProps) {
   const isFreezer = (key: string) => key.includes('냉동') || key.includes('서랍');
+  const surface = getFridgeSurfaceColors(colors);
 
   return (
-    <View style={{ backgroundColor: '#dce8f0' }}>
+    <View style={{ backgroundColor: surface.interior }}>
       {/* LED light bar at top */}
       <LinearGradient
-        colors={['rgba(220,240,255,0.95)', 'rgba(200,225,245,0.4)', 'rgba(200,225,245,0)']}
+        colors={[surface.ledStart, surface.ledMid, 'rgba(200,225,245,0)']}
         style={{ height: 18 }}
       />
 
       {zones.map((zone, zoneIdx) => {
         const zoneItems = items.filter((i) => i.zone === zone.key);
-        const bgColor = isFreezer(zone.key) ? '#d4e2ee' : '#dce8f0';
+        const bgColor = isFreezer(zone.key) ? surface.freezer : surface.interior;
 
         return (
           <View key={zone.key}>
@@ -169,7 +204,7 @@ function FridgeInterior({ zones, items, frameColor, onShelfPress }: FridgeInteri
               </View>
             )}
             <View style={{ backgroundColor: bgColor }}>
-              <ZoneHeader zone={zone} items={items} />
+              <ZoneHeader zone={zone} items={items} colors={colors} />
             </View>
             <View style={{ backgroundColor: bgColor }}>
               {Array.from({ length: zone.shelves }, (_, idx) => {
@@ -191,7 +226,7 @@ function FridgeInterior({ zones, items, frameColor, onShelfPress }: FridgeInteri
                           : undefined
                       }
                     />
-                    {idx < zone.shelves - 1 && <GlassShelfDivider />}
+                    {idx < zone.shelves - 1 && <GlassShelfDivider colors={colors} />}
                   </React.Fragment>
                 );
               })}
@@ -220,6 +255,7 @@ interface DoorPanelProps {
 function DoorPanel({ color, isLeft, name, typeName }: DoorPanelProps) {
   const border = shadeColor(color, -18);
   const handle = shadeColor(color, -50);
+  const textColor = getReadableTextColor(color);
 
   return (
     <View
@@ -254,12 +290,12 @@ function DoorPanel({ color, isLeft, name, typeName }: DoorPanelProps) {
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         {isLeft && name ? (
           <>
-            <Ionicons name="snow-outline" size={28} color={shadeColor(color, -70)} style={{ marginBottom: 6 }} />
+            <Ionicons name="snow-outline" size={28} color={textColor} style={{ marginBottom: 6 }} />
             <Text
               style={{
                 fontSize: 13,
                 fontWeight: '700',
-                color: shadeColor(color, -70),
+                color: textColor,
                 textAlign: 'center',
                 paddingHorizontal: 12,
               }}
@@ -267,10 +303,10 @@ function DoorPanel({ color, isLeft, name, typeName }: DoorPanelProps) {
             >
               {name}
             </Text>
-            <Text style={{ fontSize: 10, color: shadeColor(color, -45), marginTop: 2 }}>
+            <Text style={{ fontSize: 10, color: textColor, opacity: 0.75, marginTop: 2 }}>
               {typeName}
             </Text>
-            <Text style={{ fontSize: 11, color: shadeColor(color, -30), marginTop: 14 }}>
+            <Text style={{ fontSize: 11, color: textColor, opacity: 0.62, marginTop: 14 }}>
               탭하여 열기
             </Text>
           </>
@@ -331,9 +367,10 @@ function WallStrip({ frameColor, side }: { frameColor: string; side: 'left' | 'r
 }
 
 // ─── Header Summary Bar ────────────────────────────────────────────
-function HeaderSummary({ items, frameColor }: { items: FoodItem[]; frameColor: string }) {
+function HeaderSummary({ items, colors }: { items: FoodItem[]; colors: ThemeColors }) {
   const { total, expired, expiring, safe } = getItemStats(items);
   const fillRatio = total > 0 ? Math.min(total / 30, 1) : 0;
+  const statusColor = expired > 0 ? colors.danger : expiring > 0 ? colors.warning : colors.success;
 
   return (
     <View
@@ -342,7 +379,9 @@ function HeaderSummary({ items, frameColor }: { items: FoodItem[]; frameColor: s
         alignItems: 'center',
         paddingHorizontal: 12,
         paddingVertical: 6,
-        backgroundColor: shadeColor(frameColor, 10),
+        backgroundColor: colors.bgSecondary,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
         gap: 8,
       }}
     >
@@ -356,7 +395,7 @@ function HeaderSummary({ items, frameColor }: { items: FoodItem[]; frameColor: s
             marginBottom: 3,
           }}
         >
-          <Text style={{ fontSize: 10, color: '#6b7280', fontWeight: '600' }}>
+          <Text style={{ fontSize: 10, color: colors.textSecondary, fontWeight: '600' }}>
             {total}개 보관 중
           </Text>
         </View>
@@ -373,7 +412,7 @@ function HeaderSummary({ items, frameColor }: { items: FoodItem[]; frameColor: s
               width: `${fillRatio * 100}%`,
               height: '100%',
               borderRadius: 2,
-              backgroundColor: expired > 0 ? '#ef4444' : expiring > 0 ? '#f97316' : '#22c55e',
+              backgroundColor: statusColor,
             }}
           />
         </View>
@@ -382,20 +421,20 @@ function HeaderSummary({ items, frameColor }: { items: FoodItem[]; frameColor: s
       {/* 상태 뱃지들 */}
       {safe > 0 && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-          <Ionicons name="checkmark-circle" size={12} color="#22c55e" />
-          <Text style={{ fontSize: 10, color: '#22c55e', fontWeight: '700' }}>{safe}</Text>
+          <Ionicons name="checkmark-circle" size={12} color={colors.success} />
+          <Text style={{ fontSize: 10, color: colors.success, fontWeight: '700' }}>{safe}</Text>
         </View>
       )}
       {expiring > 0 && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-          <Ionicons name="alert-circle" size={12} color="#f97316" />
-          <Text style={{ fontSize: 10, color: '#f97316', fontWeight: '700' }}>{expiring}</Text>
+          <Ionicons name="alert-circle" size={12} color={colors.warning} />
+          <Text style={{ fontSize: 10, color: colors.warning, fontWeight: '700' }}>{expiring}</Text>
         </View>
       )}
       {expired > 0 && (
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-          <Ionicons name="close-circle" size={12} color="#ef4444" />
-          <Text style={{ fontSize: 10, color: '#ef4444', fontWeight: '700' }}>{expired}</Text>
+          <Ionicons name="close-circle" size={12} color={colors.danger} />
+          <Text style={{ fontSize: 10, color: colors.danger, fontWeight: '700' }}>{expired}</Text>
         </View>
       )}
     </View>
@@ -404,10 +443,13 @@ function HeaderSummary({ items, frameColor }: { items: FoodItem[]; frameColor: s
 
 // ─── Main Component ────────────────────────────────────────────────
 export function RefrigeratorView({ refrigerator, items, onShelfPress }: RefrigeratorViewProps) {
+  const { colors } = useThemeStore();
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const containerWidth = screenWidth - 32;
 
-  const frameColor = refrigerator.color ?? '#b0b8c1';
+  const frameColor = refrigerator.color ?? (isDarkTheme(colors) ? '#334155' : '#b0b8c1');
+  const frameTextColor = getReadableTextColor(frameColor);
+  const surface = getFridgeSurfaceColors(colors);
   const doorAnim = useRef(new Animated.Value(0)).current;
   const [isOpen, setIsOpen] = useState(false);
 
@@ -494,21 +536,21 @@ export function RefrigeratorView({ refrigerator, items, onShelfPress }: Refriger
           borderBottomColor: shadeColor(frameColor, -20),
         }}
       >
-        <Text style={{ fontSize: 13, fontWeight: '700', color: '#374151' }}>
+        <Text style={{ fontSize: 13, fontWeight: '700', color: frameTextColor }}>
           {refrigerator.name}
         </Text>
         {isOpen && (
           <TouchableOpacity onPress={closeDoor} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-              <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '600' }}>닫기</Text>
-              <Ionicons name="close" size={14} color="#6b7280" />
+              <Text style={{ fontSize: 12, color: frameTextColor, opacity: 0.76, fontWeight: '600' }}>닫기</Text>
+              <Ionicons name="close" size={14} color={frameTextColor} />
             </View>
           </TouchableOpacity>
         )}
       </View>
 
       {/* Summary bar (visible when open) */}
-      {isOpen && <HeaderSummary items={fridgeItems} frameColor={frameColor} />}
+      {isOpen && <HeaderSummary items={fridgeItems} colors={colors} />}
 
       {/* Body */}
       <View style={{ position: 'relative' }}>
@@ -519,7 +561,7 @@ export function RefrigeratorView({ refrigerator, items, onShelfPress }: Refriger
               <View
                 style={{
                   width: '18%',
-                  backgroundColor: '#e2eaf0',
+                  backgroundColor: surface.doorBin,
                   transform: [{ perspective: 400 }, { rotateY: '18deg' }],
                   transformOrigin: '0% 50%',
                   overflow: 'hidden',
@@ -549,6 +591,7 @@ export function RefrigeratorView({ refrigerator, items, onShelfPress }: Refriger
               zones={interior}
               items={fridgeItems}
               frameColor={frameColor}
+              colors={colors}
               onShelfPress={onShelfPress}
             />
             {hasDoorZones && !isKimchi && (
@@ -566,7 +609,7 @@ export function RefrigeratorView({ refrigerator, items, onShelfPress }: Refriger
               <View
                 style={{
                   width: '18%',
-                  backgroundColor: '#e2eaf0',
+                  backgroundColor: surface.doorBin,
                   transform: [{ perspective: 400 }, { rotateY: '-18deg' }],
                   transformOrigin: '100% 50%',
                   overflow: 'hidden',

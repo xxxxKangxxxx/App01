@@ -16,20 +16,9 @@ import { useRefrigerators } from '../hooks/useRefrigerators';
 import { getZonesForType, getShelvesForZone } from './refrigerator/fridgeConfigs';
 import { shelfLifeApi } from '../services/api';
 import { formatDate, parseDate, getDaysFromToday } from '../utils/date';
+import { getExpiryUiFromDays } from '../utils/expiry';
+import { getCategoryAccent, getCategoryIcon } from '../constants/categoryUi';
 import { useThemeStore } from '../store/theme.store';
-
-// ── 카테고리 아이콘 매핑 ──
-const CATEGORY_ICONS: Record<Category, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
-  VEGETABLES: { name: 'leaf-outline', color: '#22c55e' },
-  FRUITS: { name: 'nutrition-outline', color: '#f97316' },
-  MEAT: { name: 'flame-outline', color: '#ef4444' },
-  SEAFOOD: { name: 'fish-outline', color: '#3b82f6' },
-  DAIRY: { name: 'water-outline', color: '#a855f7' },
-  BEVERAGE: { name: 'cafe-outline', color: '#06b6d4' },
-  CONDIMENT: { name: 'flask-outline', color: '#eab308' },
-  FROZEN: { name: 'snow-outline', color: '#6366f1' },
-  OTHER: { name: 'ellipsis-horizontal-outline', color: '#6b7280' },
-};
 
 const CATEGORIES: Category[] = [
   'VEGETABLES', 'FRUITS', 'MEAT',
@@ -105,16 +94,7 @@ function DateField({ label, value, onChange, showPresets = false }: DateFieldPro
     setShowPicker(false);
   };
 
-  const getBadgeStyle = () => {
-    if (daysFromToday === null) return null;
-    if (daysFromToday < 0) return { bg: '#f3f4f6', text: '#9ca3af', label: '만료' };
-    if (daysFromToday === 0) return { bg: '#fef2f2', text: '#ef4444', label: 'D-day' };
-    if (daysFromToday <= 3) return { bg: '#fff7ed', text: '#f97316', label: `D-${daysFromToday}` };
-    if (daysFromToday <= 7) return { bg: '#fefce8', text: '#eab308', label: `D-${daysFromToday}` };
-    return { bg: '#f0fdf4', text: '#22c55e', label: `D-${daysFromToday}` };
-  };
-
-  const badge = getBadgeStyle();
+  const badge = daysFromToday === null ? null : getExpiryUiFromDays(daysFromToday, colors);
 
   return (
     <View style={{ flex: 1 }}>
@@ -183,11 +163,11 @@ function DateField({ label, value, onChange, showPresets = false }: DateFieldPro
                   paddingVertical: 5,
                   borderRadius: 16,
                   borderWidth: 1.5,
-                  borderColor: '#fca5a5',
-                  backgroundColor: '#fef2f2',
+                  borderColor: colors.danger,
+                  backgroundColor: colors.dangerLight,
                 }}
               >
-                <Text style={{ fontSize: 12, fontWeight: '600', color: '#ef4444' }}>초기화</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.danger }}>초기화</Text>
               </TouchableOpacity>
             ) : null}
           </View>
@@ -421,7 +401,7 @@ export function FoodForm({
               {isSearching && (
                 <ActivityIndicator
                   size="small"
-                  color="#3b82f6"
+                  color={colors.info}
                   style={{ position: 'absolute', right: 14 }}
                 />
               )}
@@ -446,13 +426,13 @@ export function FoodForm({
                     gap: 4,
                     paddingHorizontal: 12,
                     paddingVertical: 7,
-                    backgroundColor: '#eef2ff',
+                    backgroundColor: colors.infoLight,
                     borderBottomWidth: 1,
-                    borderBottomColor: '#e0e7ff',
+                    borderBottomColor: colors.divider,
                   }}
                 >
-                  <Ionicons name="sparkles" size={12} color="#6366f1" />
-                  <Text style={{ fontSize: 11, fontWeight: '600', color: '#4f46e5' }}>
+                  <Ionicons name="sparkles" size={12} color={colors.info} />
+                  <Text style={{ fontSize: 11, fontWeight: '600', color: colors.info }}>
                     유통기한 자동 제안
                   </Text>
                 </View>
@@ -485,14 +465,14 @@ export function FoodForm({
                           flexDirection: 'row',
                           alignItems: 'center',
                           gap: 3,
-                          backgroundColor: '#f0fdf4',
+                          backgroundColor: colors.successLight,
                           borderRadius: 8,
                           paddingHorizontal: 7,
                           paddingVertical: 3,
                         }}
                       >
-                        <Ionicons name="time-outline" size={11} color="#22c55e" />
-                        <Text style={{ fontSize: 11, fontWeight: '600', color: '#16a34a' }}>
+                        <Ionicons name="time-outline" size={11} color={colors.success} />
+                        <Text style={{ fontSize: 11, fontWeight: '600', color: colors.success }}>
                           {item.defaultDays}일 ({storageLabel})
                         </Text>
                       </View>
@@ -513,8 +493,8 @@ export function FoodForm({
                   paddingHorizontal: 4,
                 }}
               >
-                <Ionicons name="checkmark-circle" size={14} color="#22c55e" />
-                <Text style={{ fontSize: 11, color: '#22c55e', fontWeight: '500' }}>
+                <Ionicons name="checkmark-circle" size={14} color={colors.success} />
+                <Text style={{ fontSize: 11, color: colors.success, fontWeight: '500' }}>
                   유통기한이 자동 설정되었습니다 ({expiresAt})
                 </Text>
               </View>
@@ -527,7 +507,8 @@ export function FoodForm({
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {CATEGORIES.map((cat) => {
                 const isSelected = category === cat;
-                const iconInfo = CATEGORY_ICONS[cat];
+                const iconName = getCategoryIcon(cat);
+                const iconColor = getCategoryAccent(cat, colors);
                 return (
                   <TouchableOpacity
                     key={cat}
@@ -541,20 +522,20 @@ export function FoodForm({
                       paddingHorizontal: 10,
                       borderRadius: 12,
                       borderWidth: 1.5,
-                      borderColor: isSelected ? iconInfo.color : colors.border,
-                      backgroundColor: isSelected ? iconInfo.color + '14' : colors.bgInput,
+                      borderColor: isSelected ? iconColor : colors.border,
+                      backgroundColor: isSelected ? colors.bgSecondary : colors.bgInput,
                     }}
                   >
                     <Ionicons
-                      name={iconInfo.name}
+                      name={iconName}
                       size={16}
-                      color={isSelected ? iconInfo.color : colors.textTertiary}
+                      color={isSelected ? iconColor : colors.textTertiary}
                     />
                     <Text
                       style={{
                         fontSize: 12,
                         fontWeight: '600',
-                        color: isSelected ? iconInfo.color : colors.textSecondary,
+                        color: isSelected ? iconColor : colors.textSecondary,
                       }}
                       numberOfLines={1}
                     >

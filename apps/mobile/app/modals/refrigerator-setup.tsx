@@ -19,6 +19,7 @@ import {
 } from '../../hooks/useRefrigerators';
 import { getZonesForType } from '../../components/refrigerator/fridgeConfigs';
 import { useThemeStore } from '../../store/theme.store';
+import { darkColors, lightColors } from '../../constants/colors';
 
 const TYPES: RefrigeratorType[] = ['STANDARD', 'SIDE_BY_SIDE', 'FRENCH_DOOR', 'FREEZER', 'KIMCHI'];
 
@@ -31,6 +32,94 @@ const PRESET_COLORS = [
   '#ede9fe', // 보라
   '#f0f0f0', // 화이트
 ];
+
+function getReadableTextColor(hex: string): string {
+  const num = parseInt(hex.replace('#', ''), 16);
+  const r = (num >> 16) & 0xff;
+  const g = (num >> 8) & 0xff;
+  const b = num & 0xff;
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.58 ? '#334155' : '#f8fafc';
+}
+
+function MiniFridgePreview({
+  color,
+  isDark,
+}: {
+  color: string;
+  isDark: boolean;
+}) {
+  const previewColors = isDark ? darkColors : lightColors;
+  const textColor = getReadableTextColor(color);
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        minWidth: 116,
+        backgroundColor: previewColors.bg,
+        borderWidth: 1,
+        borderColor: previewColors.border,
+        borderRadius: 12,
+        padding: 10,
+        alignItems: 'center',
+        gap: 8,
+      }}
+    >
+      <View
+        style={{
+          width: 56,
+          height: 72,
+          borderRadius: 10,
+          backgroundColor: color,
+          borderWidth: 2,
+          borderColor: previewColors.border,
+          overflow: 'hidden',
+          flexDirection: 'row',
+        }}
+      >
+        <View style={{ flex: 1, borderRightWidth: 1, borderRightColor: 'rgba(0,0,0,0.12)' }}>
+          <View
+            style={{
+              position: 'absolute',
+              right: 5,
+              top: 22,
+              bottom: 22,
+              width: 3,
+              borderRadius: 2,
+              backgroundColor: textColor,
+              opacity: 0.45,
+            }}
+          />
+        </View>
+        <View style={{ flex: 1 }}>
+          <View
+            style={{
+              position: 'absolute',
+              left: 5,
+              top: 22,
+              bottom: 22,
+              width: 3,
+              borderRadius: 2,
+              backgroundColor: textColor,
+              opacity: 0.45,
+            }}
+          />
+        </View>
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        <Ionicons
+          name={isDark ? 'moon-outline' : 'sunny-outline'}
+          size={13}
+          color={previewColors.textSecondary}
+        />
+        <Text style={{ fontSize: 11, fontWeight: '600', color: previewColors.textSecondary }}>
+          {isDark ? '다크' : '라이트'}
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 export default function RefrigeratorSetupModal() {
   const { colors } = useThemeStore();
@@ -210,6 +299,10 @@ export default function RefrigeratorSetupModal() {
                 }}
               />
             ))}
+          </View>
+          <View style={{ flexDirection: 'row', gap: 10, marginTop: 12 }}>
+            <MiniFridgePreview color={color} isDark={false} />
+            <MiniFridgePreview color={color} isDark />
           </View>
         </View>
 
@@ -412,7 +505,7 @@ export default function RefrigeratorSetupModal() {
             disabled={deleteMutation.isPending}
             style={{ alignItems: 'center', paddingVertical: 8 }}
           >
-            <Text style={{ color: '#ef4444', fontSize: 14, fontWeight: '600' }}>
+            <Text style={{ color: colors.danger, fontSize: 14, fontWeight: '600' }}>
               냉장고 삭제
             </Text>
           </TouchableOpacity>

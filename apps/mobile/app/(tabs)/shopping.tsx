@@ -296,7 +296,7 @@ export default function ShoppingScreen() {
                 marginBottom: 10,
               }}
             >
-              <Ionicons name="arrow-back" size={12} color="#ef4444" />
+              <Ionicons name="arrow-back" size={12} color={colors.danger} />
               <Text style={{ fontSize: 10, color: colors.textTertiary }}>밀어서 삭제</Text>
             </View>
 
@@ -385,7 +385,7 @@ export default function ShoppingScreen() {
 
         {/* 지난 장보기 링크 */}
         <TouchableOpacity
-          onPress={() => router.push('/(tabs)/shopping-history' as any)}
+          onPress={() => router.push('/(tabs)/shopping-history')}
           style={{
             flexDirection: 'row',
             alignItems: 'center',

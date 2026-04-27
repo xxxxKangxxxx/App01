@@ -154,15 +154,15 @@ export function FridgeCard({ refrigerator, items, onPress }: FridgeCardProps) {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <Text style={{ fontSize: 10, color: colors.textSecondary }}>{fridgeItems.length}개</Text>
           {expiringCount > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff7ed', borderRadius: 6, paddingHorizontal: 4, paddingVertical: 1, gap: 2 }}>
-              <Ionicons name="alert-circle" size={10} color="#f97316" />
-              <Text style={{ fontSize: 9, fontWeight: '700', color: '#f97316' }}>{expiringCount}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.warningLight, borderRadius: 6, paddingHorizontal: 4, paddingVertical: 1, gap: 2 }}>
+              <Ionicons name="alert-circle" size={10} color={colors.warning} />
+              <Text style={{ fontSize: 9, fontWeight: '700', color: colors.warning }}>{expiringCount}</Text>
             </View>
           )}
           {expiredCount > 0 && (
-            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#fef2f2', borderRadius: 6, paddingHorizontal: 4, paddingVertical: 1, gap: 2 }}>
-              <Ionicons name="close-circle" size={10} color="#ef4444" />
-              <Text style={{ fontSize: 9, fontWeight: '700', color: '#ef4444' }}>{expiredCount}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: colors.dangerLight, borderRadius: 6, paddingHorizontal: 4, paddingVertical: 1, gap: 2 }}>
+              <Ionicons name="close-circle" size={10} color={colors.danger} />
+              <Text style={{ fontSize: 9, fontWeight: '700', color: colors.danger }}>{expiredCount}</Text>
             </View>
           )}
         </View>

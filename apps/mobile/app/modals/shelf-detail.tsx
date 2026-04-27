@@ -11,16 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useFoodItems } from '../../hooks/useFoodItems';
 import { getFoodEmoji } from '../../constants/foodEmoji';
 import { getDaysUntilExpiry } from '../../utils/date';
+import { getExpiryUiFromDays } from '../../utils/expiry';
 import { useThemeStore } from '../../store/theme.store';
-
-function expiryColor(days: number | null): string {
-  if (days === null) return '#9ca3af';
-  if (days < 0) return '#9ca3af';
-  if (days === 0) return '#ef4444';
-  if (days <= 3) return '#f97316';
-  if (days <= 7) return '#eab308';
-  return '#22c55e';
-}
 
 export default function ShelfDetailModal() {
   const { colors } = useThemeStore();
@@ -65,7 +57,7 @@ export default function ShelfDetailModal() {
         ItemSeparatorComponent={() => <View style={{ height: 8 }} />}
         renderItem={({ item }) => {
           const days = item.expiresAt ? getDaysUntilExpiry(item.expiresAt) : null;
-          const color = expiryColor(days);
+          const expiryUi = getExpiryUiFromDays(days, colors);
 
           return (
             <TouchableOpacity
@@ -91,7 +83,7 @@ export default function ShelfDetailModal() {
                     width: 8,
                     height: 8,
                     borderRadius: 4,
-                    backgroundColor: color,
+                    backgroundColor: expiryUi.text,
                     marginTop: 2,
                   }}
                 />
@@ -115,11 +107,11 @@ export default function ShelfDetailModal() {
                     paddingHorizontal: 8,
                     paddingVertical: 3,
                     borderRadius: 10,
-                    backgroundColor: color + '22',
+                    backgroundColor: expiryUi.bg,
                   }}
                 >
-                  <Text style={{ fontSize: 12, fontWeight: '700', color }}>
-                    {days < 0 ? '만료' : days === 0 ? 'D-day' : `D-${days}`}
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: expiryUi.text }}>
+                    {expiryUi.label}
                   </Text>
                 </View>
               )}

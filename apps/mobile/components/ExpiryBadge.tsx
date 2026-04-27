@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { getDaysUntilExpiry } from '../utils/date';
+import { getExpiryUiFromDays } from '../utils/expiry';
 import { useThemeStore } from '../store/theme.store';
 
 interface ExpiryBadgeProps {
@@ -12,37 +13,13 @@ export function ExpiryBadge({ expiresAt }: ExpiryBadgeProps) {
 
   if (!expiresAt) return null;
 
-  const days = getDaysUntilExpiry(expiresAt)!;
-
-  let label = '';
-  let bg = '';
-  let textColor = '';
-
-  if (days < 0) {
-    label = '만료됨';
-    bg = colors.border;
-    textColor = colors.textTertiary;
-  } else if (days <= 1) {
-    label = days === 0 ? 'D-day' : 'D-1';
-    bg = colors.dangerLight;
-    textColor = colors.danger;
-  } else if (days <= 3) {
-    label = `D-${days}`;
-    bg = colors.warningLight;
-    textColor = colors.warning;
-  } else if (days <= 7) {
-    label = `D-${days}`;
-    bg = colors.cautionLight;
-    textColor = colors.caution;
-  } else {
-    label = `D-${days}`;
-    bg = colors.successLight;
-    textColor = colors.success;
-  }
+  const days = getDaysUntilExpiry(expiresAt);
+  const expiryUi = getExpiryUiFromDays(days, colors);
+  const label = expiryUi.status === 'expired' ? '만료됨' : expiryUi.label;
 
   return (
-    <View style={{ borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: bg }}>
-      <Text style={{ fontSize: 12, fontWeight: '600', color: textColor }}>{label}</Text>
+    <View style={{ borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2, backgroundColor: expiryUi.bg }}>
+      <Text style={{ fontSize: 12, fontWeight: '600', color: expiryUi.text }}>{label}</Text>
     </View>
   );
 }

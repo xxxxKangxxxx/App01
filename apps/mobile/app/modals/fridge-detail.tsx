@@ -48,10 +48,10 @@ function SummaryCard({ items }: { items: FoodItem[] }) {
         elevation: 2,
       }}
     >
-      <StatBox icon="cube-outline" color="#3b82f6" label="전체" value={total} />
-      <StatBox icon="checkmark-circle" color="#22c55e" label="여유" value={safe} />
-      <StatBox icon="alert-circle" color="#f97316" label="임박" value={expiring} />
-      <StatBox icon="close-circle" color="#ef4444" label="만료" value={expired} />
+      <StatBox icon="cube-outline" color={colors.info} label="전체" value={total} />
+      <StatBox icon="checkmark-circle" color={colors.success} label="여유" value={safe} />
+      <StatBox icon="alert-circle" color={colors.warning} label="임박" value={expiring} />
+      <StatBox icon="close-circle" color={colors.danger} label="만료" value={expired} />
     </View>
   );
 }

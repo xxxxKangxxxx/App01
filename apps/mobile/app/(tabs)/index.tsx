@@ -19,6 +19,8 @@ import { CATEGORY_LABELS } from '@freshbox/types';
 import type { FoodItem, Category, Refrigerator } from '@freshbox/types';
 import { getFoodEmoji } from '../../constants/foodEmoji';
 import { getDaysUntilExpiry } from '../../utils/date';
+import { getExpiryUiFromDays } from '../../utils/expiry';
+import { getCategoryIcon } from '../../constants/categoryUi';
 import { useThemeStore } from '../../store/theme.store';
 
 // ─── 온보딩 화면 ─────────────────────────────────────────────────
@@ -164,19 +166,13 @@ function StatItem({
 // ─── 미분류 아이템 칩 ────────────────────────────────────────────
 function useExpiryChipColor(expiresAt?: string | null) {
   const { colors } = useThemeStore();
-  if (!expiresAt) return { border: colors.border, bg: colors.bgCard, text: colors.text, badge: '', badgeText: '' };
-  const days = getDaysUntilExpiry(expiresAt)!;
-  if (days < 0)  return { border: colors.border, bg: colors.bgSecondary, text: colors.textTertiary, badge: colors.textTertiary, badgeText: colors.textInverse };
-  if (days === 0) return { border: colors.danger, bg: colors.dangerLight, text: colors.danger, badge: colors.danger, badgeText: colors.textInverse };
-  if (days <= 3)  return { border: colors.warning, bg: colors.warningLight, text: colors.warning, badge: colors.warning, badgeText: colors.textInverse };
-  if (days <= 7)  return { border: colors.caution, bg: colors.cautionLight, text: colors.caution, badge: colors.caution, badgeText: colors.textInverse };
-  return { border: colors.success, bg: colors.successLight, text: colors.success, badge: colors.success, badgeText: colors.textInverse };
+  const days = expiresAt ? getDaysUntilExpiry(expiresAt) : null;
+  return getExpiryUiFromDays(days, colors);
 }
 
 function UnclassifiedChip({ item }: { item: FoodItem }) {
-  const days = item.expiresAt ? getDaysUntilExpiry(item.expiresAt) : null;
   const c = useExpiryChipColor(item.expiresAt);
-  const label = days === null ? '' : days < 0 ? '만료' : days === 0 ? 'D-day' : `D-${days}`;
+  const label = c.label;
 
   return (
     <TouchableOpacity
@@ -217,8 +213,7 @@ function UnclassifiedChip({ item }: { item: FoodItem }) {
 function RecentItem({ item }: { item: FoodItem }) {
   const { colors } = useThemeStore();
   const days = item.expiresAt ? getDaysUntilExpiry(item.expiresAt) : null;
-  const dLabel = days === null ? '' : days < 0 ? '만료' : days === 0 ? 'D-day' : `D-${days}`;
-  const dColor = days === null ? '#9ca3af' : days < 0 ? '#9ca3af' : days === 0 ? '#ef4444' : days <= 3 ? '#f97316' : days <= 7 ? '#eab308' : '#22c55e';
+  const expiryUi = getExpiryUiFromDays(days, colors);
 
   // 추가 일시 표시
   const createdDate = new Date(item.createdAt);
@@ -262,16 +257,16 @@ function RecentItem({ item }: { item: FoodItem }) {
           </Text>
         </View>
       </View>
-      {dLabel ? (
+      {expiryUi.label ? (
         <View
           style={{
-            backgroundColor: dColor + '18',
+            backgroundColor: expiryUi.bg,
             borderRadius: 8,
             paddingHorizontal: 7,
             paddingVertical: 3,
           }}
         >
-          <Text style={{ fontSize: 11, fontWeight: '700', color: dColor }}>{dLabel}</Text>
+          <Text style={{ fontSize: 11, fontWeight: '700', color: expiryUi.text }}>{expiryUi.label}</Text>
         </View>
       ) : null}
     </TouchableOpacity>
@@ -294,19 +289,6 @@ function getExpiryStatus(item: FoodItem): ExpiryStatus {
   if (d <= 3) return 'expiring';
   return 'safe';
 }
-
-// ─── 카테고리 아이콘 ────────────────────────────────────────────
-const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  VEGETABLES: 'leaf-outline',
-  FRUITS: 'nutrition-outline',
-  MEAT: 'flame-outline',
-  SEAFOOD: 'fish-outline',
-  DAIRY: 'water-outline',
-  BEVERAGE: 'cafe-outline',
-  CONDIMENT: 'flask-outline',
-  FROZEN: 'snow-outline',
-  OTHER: 'ellipsis-horizontal-outline',
-};
 
 // ─── 검색바 ─────────────────────────────────────────────────────
 function SearchBar({
@@ -458,7 +440,7 @@ function FilterSection({
             <FilterChip
               key={key}
               label={label}
-              icon={CATEGORY_ICONS[key]}
+              icon={getCategoryIcon(key)}
               active={selectedCategory === key}
               onPress={() => onSelectCategory(selectedCategory === key ? null : key)}
             />
@@ -499,19 +481,7 @@ function FilterSection({
 function SearchResultItem({ item, refrigerators }: { item: FoodItem; refrigerators: Refrigerator[] }) {
   const { colors } = useThemeStore();
   const days = item.expiresAt ? getDaysUntilExpiry(item.expiresAt) : null;
-  const dLabel = days === null ? '' : days < 0 ? '만료' : days === 0 ? 'D-day' : `D-${days}`;
-  const dColor =
-    days === null
-      ? colors.textTertiary
-      : days < 0
-        ? colors.textTertiary
-        : days === 0
-          ? colors.danger
-          : days <= 3
-            ? colors.warning
-            : days <= 7
-              ? colors.caution
-              : colors.success;
+  const expiryUi = getExpiryUiFromDays(days, colors);
 
   const fridge = item.refrigeratorId
     ? refrigerators.find((r) => r.id === item.refrigeratorId)
@@ -560,16 +530,16 @@ function SearchResultItem({ item, refrigerators }: { item: FoodItem; refrigerato
           )}
         </View>
       </View>
-      {dLabel ? (
+      {expiryUi.label ? (
         <View
           style={{
-            backgroundColor: dColor + '18',
+            backgroundColor: expiryUi.bg,
             borderRadius: 8,
             paddingHorizontal: 8,
             paddingVertical: 4,
           }}
         >
-          <Text style={{ fontSize: 12, fontWeight: '700', color: dColor }}>{dLabel}</Text>
+          <Text style={{ fontSize: 12, fontWeight: '700', color: expiryUi.text }}>{expiryUi.label}</Text>
         </View>
       ) : null}
     </TouchableOpacity>

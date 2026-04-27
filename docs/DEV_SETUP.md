@@ -59,6 +59,45 @@ Prisma 클라이언트만 재생성할 때:
 pnpm --filter=@freshbox/api prisma:generate
 ```
 
+시드 데이터 적용:
+```bash
+pnpm --filter=@freshbox/api prisma:seed
+```
+
+---
+
+## 3-1단계: 서버 OCR 준비
+
+영수증 이미지 OCR은 API 서버에서 `tesseract` CLI를 사용한다.
+
+```bash
+# Tesseract 본체가 없으면 설치
+brew install tesseract
+
+# 한국어 언어팩 설치
+brew install tesseract-lang
+
+# kor, eng 확인
+tesseract --list-langs
+```
+
+`apps/api/.env`:
+```env
+OCR_LANGS="kor+eng"
+```
+
+OCR 엔드포인트:
+```text
+POST /api/receipt/ocr
+Content-Type: multipart/form-data
+field: image
+```
+
+주의:
+- `@fastify/multipart`는 현재 Fastify 4.x와 맞는 `8.x` 버전을 사용한다.
+- 서버에 `kor.traineddata`가 없으면 한국어 OCR 품질이 크게 떨어진다.
+- 배포 서버에서도 `tesseract-ocr`와 한국어 언어팩을 별도로 설치해야 한다.
+
 ---
 
 ## 4단계: API 서버 실행 [터미널 1]
@@ -161,3 +200,4 @@ pnpm ios
 - Expo Go는 사용하지 않음. 개발 빌드(`com.freshbox.app`)만 사용
 - 네이티브 모듈(expo-camera 등) 추가 시 반드시 `pnpm ios`로 전체 재빌드 필요
 - API 서버가 꺼져 있으면 구글 로그인 시 "네트워크 서버에 연결할 수 없습니다" 에러 발생 → 4단계 확인
+- 작업 중 오류/해결/검증 결과는 [WORK_LOG.md](WORK_LOG.md)에 누적 기록

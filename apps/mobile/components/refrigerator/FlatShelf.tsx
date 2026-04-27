@@ -5,20 +5,18 @@ import type { FoodItem } from '@freshbox/types';
 import type { ZoneConfig } from './fridgeConfigs';
 import { getFoodEmoji } from '../../constants/foodEmoji';
 import { getDaysUntilExpiry } from '../../utils/date';
+import { useThemeStore } from '../../store/theme.store';
+import type { ThemeColors } from '../../constants/colors';
+import { getExpiryUiFromDays } from '../../utils/expiry';
 
 const MAX_VISIBLE = 4;
 
-function getExpiryColor(expiresAt?: string | null): string {
+function getExpiryColor(expiresAt: string | null | undefined, colors: ThemeColors): string {
   const days = getDaysUntilExpiry(expiresAt);
-  if (days === null) return '#9ca3af';
-  if (days < 0) return '#9ca3af';
-  if (days === 0) return '#ef4444';
-  if (days <= 3) return '#f97316';
-  if (days <= 7) return '#eab308';
-  return '#22c55e';
+  return getExpiryUiFromDays(days, colors).badge;
 }
 
-function getShelfStatus(items: FoodItem[]): { color: string; urgentCount: number } {
+function getShelfStatus(items: FoodItem[], colors: ThemeColors): { color: string; urgentCount: number } {
   let urgentCount = 0;
   let worstDays = Infinity;
 
@@ -30,9 +28,9 @@ function getShelfStatus(items: FoodItem[]): { color: string; urgentCount: number
     }
   }
 
-  if (urgentCount === 0) return { color: '#22c55e', urgentCount: 0 };
-  if (worstDays <= 0) return { color: '#ef4444', urgentCount };
-  return { color: '#f97316', urgentCount };
+  if (urgentCount === 0) return { color: colors.success, urgentCount: 0 };
+  if (worstDays <= 0) return { color: colors.danger, urgentCount };
+  return { color: colors.warning, urgentCount };
 }
 
 interface FlatShelfProps {
@@ -44,11 +42,12 @@ interface FlatShelfProps {
 }
 
 export function FlatShelf({ zone, shelfNumber, items, onPress, compact = false }: FlatShelfProps) {
+  const { colors } = useThemeStore();
   const maxVisible = compact ? 3 : MAX_VISIBLE;
   const visible = items.slice(0, maxVisible);
   const extra = items.length - maxVisible;
   const isEmpty = items.length === 0;
-  const { color: statusColor, urgentCount } = getShelfStatus(items);
+  const { color: statusColor, urgentCount } = getShelfStatus(items, colors);
 
   return (
     <TouchableOpacity
@@ -59,7 +58,7 @@ export function FlatShelf({ zone, shelfNumber, items, onPress, compact = false }
       <View style={{ flexDirection: 'row', alignItems: 'center', minHeight: compact ? 28 : 32 }}>
         {/* 층 번호 + 채워짐 인디케이터 */}
         <View style={{ width: compact ? 18 : 24, alignItems: 'center' }}>
-          <Text style={{ fontSize: compact ? 10 : 11, color: '#9ca3af', fontWeight: '600' }}>
+          <Text style={{ fontSize: compact ? 10 : 11, color: colors.textTertiary, fontWeight: '600' }}>
             {shelfNumber}F
           </Text>
           {/* 미니 채워짐 바 */}
@@ -68,7 +67,7 @@ export function FlatShelf({ zone, shelfNumber, items, onPress, compact = false }
               width: compact ? 12 : 16,
               height: 3,
               borderRadius: 1.5,
-              backgroundColor: '#e5e7eb',
+              backgroundColor: colors.border,
               marginTop: 2,
               overflow: 'hidden',
             }}
@@ -95,14 +94,14 @@ export function FlatShelf({ zone, shelfNumber, items, onPress, compact = false }
                 justifyContent: 'center',
                 borderWidth: 1,
                 borderStyle: 'dashed',
-                borderColor: '#d1d5db',
+                borderColor: colors.border,
                 borderRadius: 8,
                 paddingVertical: compact ? 2 : 4,
                 gap: 4,
               }}
             >
-              <Ionicons name="add-outline" size={compact ? 12 : 14} color="#d1d5db" />
-              <Text style={{ fontSize: compact ? 10 : 11, color: '#d1d5db' }}>비어 있음</Text>
+              <Ionicons name="add-outline" size={compact ? 12 : 14} color={colors.border} />
+              <Text style={{ fontSize: compact ? 10 : 11, color: colors.border }}>비어 있음</Text>
             </View>
           ) : (
             visible.map((item) => (
@@ -111,17 +110,17 @@ export function FlatShelf({ zone, shelfNumber, items, onPress, compact = false }
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
-                  backgroundColor: '#f9fafb',
+                  backgroundColor: colors.bgSecondary,
                   borderRadius: 8,
                   paddingHorizontal: 6,
                   paddingVertical: 2,
                   borderLeftWidth: 3,
-                  borderLeftColor: getExpiryColor(item.expiresAt),
+                  borderLeftColor: getExpiryColor(item.expiresAt, colors),
                   gap: 3,
                 }}
               >
                 <Text style={{ fontSize: compact ? 12 : 13 }}>{getFoodEmoji(item.name, item.category)}</Text>
-                <Text style={{ fontSize: compact ? 11 : 12, color: '#374151', fontWeight: '500' }} numberOfLines={1}>
+                <Text style={{ fontSize: compact ? 11 : 12, color: colors.text, fontWeight: '500' }} numberOfLines={1}>
                   {item.name}
                 </Text>
               </View>
@@ -130,15 +129,24 @@ export function FlatShelf({ zone, shelfNumber, items, onPress, compact = false }
           {extra > 0 && (
             <View
               style={{
-                backgroundColor: '#e5e7eb',
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: colors.bgCard,
+                borderWidth: 1,
+                borderColor: colors.border,
                 borderRadius: 8,
                 paddingHorizontal: 6,
                 paddingVertical: 2,
-                alignItems: 'center',
                 justifyContent: 'center',
+                gap: 2,
               }}
             >
-              <Text style={{ fontSize: 11, color: '#6b7280', fontWeight: '600' }}>+{extra}</Text>
+              <Text style={{ fontSize: compact ? 10 : 11, color: colors.textSecondary, fontWeight: '700' }}>
+                +{extra}
+              </Text>
+              {!compact && (
+                <Ionicons name="chevron-forward" size={10} color={colors.textTertiary} />
+              )}
             </View>
           )}
         </View>

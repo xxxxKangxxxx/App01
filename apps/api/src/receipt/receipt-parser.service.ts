@@ -133,6 +133,7 @@ export class ReceiptParserService {
       /카드/, /현금/, /거래/, /매장/, /점포/, /사업자/, /전화/,
       /주소/, /감사/, /영수증/, /포인트/, /적립/, /할인/,
       /반품/, /교환/, /일시/, /거스름/,
+      /total/i, /subtotal/i, /amount/i, /change/i, /cash/i, /credit/i,
     ];
 
     // 상품 영역 감지: "상품명" 또는 "품명" 헤더 이후부터
@@ -178,6 +179,18 @@ export class ReceiptParserService {
       return {
         name: this.cleanProductName(m1[1]),
         quantity: parseInt(m1[2]),
+        unit: '개',
+      };
+    }
+
+    // 패턴 1-1: "상품명 수량 금액"
+    // 예: "MILK 1 2800"
+    const pattern1b = /^(.+?)\s+(\d{1,2})\s+[\d,]+\s*$/;
+    const m1b = line.match(pattern1b);
+    if (m1b) {
+      return {
+        name: this.cleanProductName(m1b[1]),
+        quantity: parseInt(m1b[2]),
         unit: '개',
       };
     }
@@ -230,9 +243,9 @@ export class ReceiptParserService {
       // 해산물
       { pattern: /연어|고등어|갈치|삼치|참치|새우|오징어|조개|게|전복|멸치|김|미역|광어|우럭|방어|꽁치|문어|낙지|굴/, category: 'SEAFOOD' },
       // 유제품
-      { pattern: /우유|치즈|요거트|요구르트|버터|생크림|달걀|계란|두부|순두부/, category: 'DAIRY' },
+      { pattern: /우유|치즈|요거트|요구르트|버터|생크림|달걀|계란|두부|순두부|milk|cheese|yogurt|butter/i, category: 'DAIRY' },
       // 과일
-      { pattern: /사과|배|바나나|딸기|포도|수박|참외|복숭아|귤|오렌지|레몬|키위|망고|자몽|블루베리|체리|감|메론|아보카도/, category: 'FRUITS' },
+      { pattern: /사과|배|바나나|딸기|포도|수박|참외|복숭아|귤|오렌지|레몬|키위|망고|자몽|블루베리|체리|감|메론|아보카도|apple|banana|orange|lemon|kiwi|mango|berry|grape/i, category: 'FRUITS' },
       // 채소
       { pattern: /양파|감자|고구마|당근|시금치|배추|양배추|브로콜리|파프리카|오이|토마토|대파|쪽파|깻잎|상추|콩나물|숙주|무|마늘|생강|고추|피망|버섯|호박|가지|셀러리|부추|미나리/, category: 'VEGETABLES' },
       // 음료

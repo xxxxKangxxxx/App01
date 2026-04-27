@@ -12,11 +12,11 @@ interface FoodItemCardProps {
   item: FoodItem;
 }
 
-const LOCATION_ICON_MAP: Record<string, { name: keyof typeof Ionicons.glyphMap; color: string }> = {
-  냉장: { name: 'snow-outline', color: '#3b82f6' },
-  냉동: { name: 'snow', color: '#6366f1' },
-  문선반: { name: 'grid-outline', color: '#8b5cf6' },
-  실온: { name: 'sunny-outline', color: '#f59e0b' },
+const LOCATION_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
+  냉장: 'snow-outline',
+  냉동: 'snow',
+  문선반: 'grid-outline',
+  실온: 'sunny-outline',
 };
 
 export function FoodItemCard({ item }: FoodItemCardProps) {
@@ -61,9 +61,9 @@ export function FoodItemCard({ item }: FoodItemCardProps) {
             </Text>
             {item.location && LOCATION_ICON_MAP[item.location] && (
               <Ionicons
-                name={LOCATION_ICON_MAP[item.location].name}
+                name={LOCATION_ICON_MAP[item.location]}
                 size={14}
-                color={LOCATION_ICON_MAP[item.location].color}
+                color={item.location === '실온' ? colors.warning : colors.info}
               />
             )}
           </View>

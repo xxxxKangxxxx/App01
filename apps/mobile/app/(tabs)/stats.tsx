@@ -14,19 +14,8 @@ import { useMonthlyStats } from '../../hooks/useMonthlyStats';
 import { CATEGORY_LABELS } from '@freshbox/types';
 import type { Category } from '@freshbox/types';
 import { getFoodEmoji } from '../../constants/foodEmoji';
+import { getCategoryIcon } from '../../constants/categoryUi';
 import { useThemeStore } from '../../store/theme.store';
-
-const CATEGORY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  VEGETABLES: 'leaf-outline',
-  FRUITS: 'nutrition-outline',
-  MEAT: 'flame-outline',
-  SEAFOOD: 'fish-outline',
-  DAIRY: 'water-outline',
-  BEVERAGE: 'cafe-outline',
-  CONDIMENT: 'flask-outline',
-  FROZEN: 'snow-outline',
-  OTHER: 'ellipsis-horizontal-outline',
-};
 
 // ─── 월 선택기 ──────────────────────────────────────────────────
 function MonthSelector({
@@ -294,7 +283,7 @@ function CategoryChart({
       <View style={{ gap: 10 }}>
         {entries.map(([cat, stat]) => {
           const label = CATEGORY_LABELS[cat as Category] ?? cat;
-          const icon = CATEGORY_ICONS[cat] ?? 'ellipsis-horizontal-outline';
+          const icon = getCategoryIcon(cat as Category);
           const barWidth = maxCount > 0 ? (stat.purchased / maxCount) * 100 : 0;
           return (
             <View key={cat} style={{ gap: 4 }}>

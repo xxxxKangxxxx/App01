@@ -20,6 +20,9 @@ interface SettingsRowProps {
 }
 
 function SettingsRow({ icon, iconColor, iconBg, label, sub, onPress, danger, textColor, subColor, chevronColor }: SettingsRowProps) {
+  const { colors } = useThemeStore();
+  const resolvedTextColor = danger ? colors.danger : (textColor ?? colors.text);
+
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -45,12 +48,12 @@ function SettingsRow({ icon, iconColor, iconBg, label, sub, onPress, danger, tex
         <Ionicons name={icon} size={18} color={iconColor} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 15, fontWeight: '500', color: danger ? '#ef4444' : (textColor ?? '#111827') }}>
+        <Text style={{ fontSize: 15, fontWeight: '500', color: resolvedTextColor }}>
           {label}
         </Text>
-        {sub ? <Text style={{ fontSize: 12, color: subColor ?? '#9ca3af', marginTop: 1 }}>{sub}</Text> : null}
+        {sub ? <Text style={{ fontSize: 12, color: subColor ?? colors.textTertiary, marginTop: 1 }}>{sub}</Text> : null}
       </View>
-      <Ionicons name="chevron-forward" size={18} color={chevronColor ?? '#d1d5db'} />
+      <Ionicons name="chevron-forward" size={18} color={chevronColor ?? colors.border} />
     </TouchableOpacity>
   );
 }

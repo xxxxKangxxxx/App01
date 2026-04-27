@@ -35,7 +35,7 @@ function RootLayoutNav() {
       if (!accessToken) {
         router.replace('/(auth)/login');
       } else {
-        router.replace('/(tabs)/');
+        router.replace('/');
         registerForPushNotifications();
         if (!hasSeenOnboarding) {
           setTimeout(() => router.push('/modals/onboarding'), 300);

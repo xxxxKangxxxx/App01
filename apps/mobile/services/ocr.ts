@@ -1,4 +1,4 @@
-import { api } from './api';
+import { apiClient } from './api';
 
 export async function recognizeTextFromImage(imageUri: string): Promise<string> {
   const formData = new FormData();
@@ -9,7 +9,7 @@ export async function recognizeTextFromImage(imageUri: string): Promise<string> 
     type: 'image/jpeg',
   } as any);
 
-  const response = await api.post<{ text: string }>('/receipt/ocr', formData, {
+  const response = await apiClient.post<{ text: string }>('/receipt/ocr', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
 

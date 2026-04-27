@@ -30,7 +30,7 @@ export default function LoginScreen() {
       const refreshToken = parsed.searchParams.get('refreshToken');
       if (accessToken && refreshToken) {
         setTokens(accessToken, refreshToken).then(() => {
-          router.replace('/(tabs)/');
+          router.replace('/');
         });
       }
     }
@@ -48,7 +48,7 @@ export default function LoginScreen() {
       const refreshToken = parsed.searchParams.get('refreshToken');
       if (accessToken && refreshToken) {
         await setTokens(accessToken, refreshToken);
-        router.replace('/(tabs)/');
+        router.replace('/');
       }
     }
   };

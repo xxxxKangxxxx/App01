@@ -14,12 +14,48 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { recognizeTextFromImage } from '../../services/ocr';
 import { useParseReceipt, useBulkCreateFoodItems } from '../../hooks/useReceiptScan';
+import { getCategoryAccent, getCategoryIcon } from '../../constants/categoryUi';
 import { getFoodEmoji } from '../../constants/foodEmoji';
 import type { ReceiptItem, CreateFoodItemDto, Category } from '@freshbox/types';
 import { CATEGORY_LABELS } from '@freshbox/types';
 import { useThemeStore } from '../../store/theme.store';
 
 type Step = 'select' | 'scanning' | 'manual' | 'preview';
+
+const CATEGORIES: Category[] = [
+  'VEGETABLES',
+  'FRUITS',
+  'MEAT',
+  'SEAFOOD',
+  'DAIRY',
+  'BEVERAGE',
+  'CONDIMENT',
+  'FROZEN',
+  'OTHER',
+];
+
+const UNIT_PRESETS = ['개', '팩', '봉', '병', '캔', 'g', 'kg', 'ml', 'L'];
+
+const EXPIRY_PRESETS = [
+  { label: '오늘', days: 0 },
+  { label: '3일', days: 3 },
+  { label: '1주', days: 7 },
+  { label: '2주', days: 14 },
+  { label: '1개월', days: 30 },
+];
+
+function addDaysToDate(baseDate: string | undefined, days: number): string {
+  const date = baseDate ? new Date(baseDate) : new Date();
+  if (Number.isNaN(date.getTime())) return '';
+  date.setDate(date.getDate() + days);
+  return date.toISOString().split('T')[0];
+}
+
+function isValidDateText(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(value);
+  return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value);
+}
 
 export default function ReceiptScanScreen() {
   const [step, setStep] = useState<Step>('select');
@@ -414,6 +450,9 @@ function ReceiptItemCard({
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(item.name);
   const [editQuantity, setEditQuantity] = useState(String(item.quantity));
+  const [editUnit, setEditUnit] = useState(item.unit);
+  const [editCategory, setEditCategory] = useState<Category>(item.category);
+  const [editExpiresAt, setEditExpiresAt] = useState(item.expiresAt);
 
   const { colors } = useThemeStore();
   const emoji = getFoodEmoji(item.name, item.category);
@@ -424,10 +463,46 @@ function ReceiptItemCard({
         ? colors.warning
         : colors.danger;
 
+  const handleStartEdit = () => {
+    setEditName(item.name);
+    setEditQuantity(String(item.quantity));
+    setEditUnit(item.unit);
+    setEditCategory(item.category);
+    setEditExpiresAt(item.expiresAt);
+    setEditing(true);
+  };
+
+  const handleCancelEdit = () => {
+    setEditName(item.name);
+    setEditQuantity(String(item.quantity));
+    setEditUnit(item.unit);
+    setEditCategory(item.category);
+    setEditExpiresAt(item.expiresAt);
+    setEditing(false);
+  };
+
   const handleSaveEdit = () => {
+    const name = editName.trim();
+    const quantity = parseInt(editQuantity, 10);
+    const unit = editUnit.trim() || '개';
+    const expiresAt = editExpiresAt.trim();
+
+    if (!name) {
+      Alert.alert('품목명 필요', '품목명을 입력해주세요.');
+      return;
+    }
+
+    if (expiresAt && !isValidDateText(expiresAt)) {
+      Alert.alert('날짜 확인', '유통기한은 YYYY-MM-DD 형식으로 입력해주세요.');
+      return;
+    }
+
     onUpdate(index, {
-      name: editName,
-      quantity: parseInt(editQuantity) || 1,
+      name,
+      quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+      unit,
+      category: editCategory,
+      expiresAt: expiresAt || undefined,
     });
     setEditing(false);
   };
@@ -438,18 +513,21 @@ function ReceiptItemCard({
         <Text style={styles.itemEmoji}>{emoji}</Text>
         <View style={styles.itemInfo}>
           {editing ? (
-            <View style={styles.editRow}>
+            <View style={styles.editNameRow}>
               <TextInput
-                style={[styles.editInput, { borderColor: colors.border, color: colors.text }]}
+                style={[styles.editInput, { backgroundColor: colors.bgInput, borderColor: colors.border, color: colors.text }]}
                 value={editName}
                 onChangeText={setEditName}
                 placeholder="품목명"
+                placeholderTextColor={colors.textTertiary}
               />
               <TextInput
-                style={[styles.editInput, { width: 50, textAlign: 'center', borderColor: colors.border, color: colors.text }]}
+                style={[styles.quantityInput, { backgroundColor: colors.bgInput, borderColor: colors.border, color: colors.text }]}
                 value={editQuantity}
                 onChangeText={setEditQuantity}
                 keyboardType="numeric"
+                placeholder="수량"
+                placeholderTextColor={colors.textTertiary}
               />
             </View>
           ) : (
@@ -469,12 +547,17 @@ function ReceiptItemCard({
             style={[styles.confidenceDot, { backgroundColor: confidenceColor }]}
           />
           {editing ? (
-            <TouchableOpacity onPress={handleSaveEdit} style={styles.actionBtn}>
-              <Ionicons name="checkmark" size={20} color={colors.success} />
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity onPress={handleCancelEdit} style={styles.actionBtn}>
+                <Ionicons name="close" size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleSaveEdit} style={styles.actionBtn}>
+                <Ionicons name="checkmark" size={20} color={colors.success} />
+              </TouchableOpacity>
+            </>
           ) : (
             <TouchableOpacity
-              onPress={() => setEditing(true)}
+              onPress={handleStartEdit}
               style={styles.actionBtn}
             >
               <Ionicons name="create-outline" size={18} color={colors.textSecondary} />
@@ -489,14 +572,103 @@ function ReceiptItemCard({
         </View>
       </View>
 
-      <View style={[styles.itemDates, { borderTopColor: colors.divider }]}>
-        <Text style={[styles.dateLabel, { color: colors.textTertiary }]}>
-          구매: {item.purchasedAt}
-        </Text>
-        <Text style={[styles.dateLabel, { color: colors.textTertiary }]}>
-          유통기한: {item.expiresAt}
-        </Text>
-      </View>
+      {editing ? (
+        <View style={[styles.itemEditor, { borderTopColor: colors.divider }]}>
+          <View style={styles.editorSection}>
+            <Text style={[styles.editorLabel, { color: colors.textSecondary }]}>단위</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+              {UNIT_PRESETS.map((unit) => {
+                const selected = editUnit === unit;
+                return (
+                  <TouchableOpacity
+                    key={unit}
+                    onPress={() => setEditUnit(unit)}
+                    style={[
+                      styles.unitChip,
+                      {
+                        borderColor: selected ? colors.success : colors.border,
+                        backgroundColor: selected ? colors.successLight : colors.bgInput,
+                      },
+                    ]}
+                  >
+                    <Text style={[styles.unitChipText, { color: selected ? colors.success : colors.textSecondary }]}>
+                      {unit}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          <View style={styles.editorSection}>
+            <Text style={[styles.editorLabel, { color: colors.textSecondary }]}>카테고리</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+              {CATEGORIES.map((category) => {
+                const selected = editCategory === category;
+                const accent = getCategoryAccent(category, colors);
+                return (
+                  <TouchableOpacity
+                    key={category}
+                    onPress={() => setEditCategory(category)}
+                    style={[
+                      styles.categoryChip,
+                      {
+                        borderColor: selected ? accent : colors.border,
+                        backgroundColor: selected ? colors.bgSecondary : colors.bgInput,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      name={getCategoryIcon(category)}
+                      size={14}
+                      color={selected ? accent : colors.textTertiary}
+                    />
+                    <Text style={[styles.categoryChipText, { color: selected ? accent : colors.textSecondary }]}>
+                      {CATEGORY_LABELS[category]}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          <View style={styles.editorSection}>
+            <Text style={[styles.editorLabel, { color: colors.textSecondary }]}>유통기한</Text>
+            <View style={[styles.expiryInputRow, { backgroundColor: colors.bgInput, borderColor: colors.border }]}>
+              <Ionicons name="calendar-outline" size={18} color={colors.textTertiary} />
+              <TextInput
+                value={editExpiresAt}
+                onChangeText={setEditExpiresAt}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={colors.textTertiary}
+                autoCapitalize="none"
+                keyboardType="numbers-and-punctuation"
+                style={[styles.expiryInput, { color: colors.text }]}
+              />
+            </View>
+            <View style={styles.expiryPresetRow}>
+              {EXPIRY_PRESETS.map((preset) => (
+                <TouchableOpacity
+                  key={preset.label}
+                  onPress={() => setEditExpiresAt(addDaysToDate(item.purchasedAt, preset.days))}
+                  style={[styles.expiryPresetChip, { backgroundColor: colors.bgInput, borderColor: colors.border }]}
+                >
+                  <Text style={[styles.expiryPresetText, { color: colors.textSecondary }]}>{preset.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+      ) : (
+        <View style={[styles.itemDates, { borderTopColor: colors.divider }]}>
+          <Text style={[styles.dateLabel, { color: colors.textTertiary }]}>
+            구매: {item.purchasedAt}
+          </Text>
+          <Text style={[styles.dateLabel, { color: colors.textTertiary }]}>
+            유통기한: {item.expiresAt}
+          </Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -642,17 +814,97 @@ const styles = StyleSheet.create({
   actionBtn: {
     padding: 4,
   },
-  editRow: {
+  editNameRow: {
     flexDirection: 'row',
     gap: 8,
   },
   editInput: {
     flex: 1,
     borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     fontSize: 14,
+  },
+  quantityInput: {
+    width: 58,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  itemEditor: {
+    marginTop: 10,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    gap: 12,
+  },
+  editorSection: {
+    gap: 8,
+  },
+  editorLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  chipRow: {
+    gap: 8,
+    paddingRight: 4,
+  },
+  unitChip: {
+    minWidth: 44,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  unitChipText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 5,
+  },
+  categoryChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  expiryInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    gap: 8,
+  },
+  expiryInput: {
+    flex: 1,
+    fontSize: 14,
+    padding: 0,
+  },
+  expiryPresetRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  expiryPresetChip: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 7,
+  },
+  expiryPresetText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   itemDates: {
     flexDirection: 'row',

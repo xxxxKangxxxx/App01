@@ -31,6 +31,9 @@ Thumbs.db
 npm-debug.log*
 pnpm-debug.log*
 
+# local sensitive test assets
+test_receipt.*
+
 # Prisma
 prisma/migrations
 

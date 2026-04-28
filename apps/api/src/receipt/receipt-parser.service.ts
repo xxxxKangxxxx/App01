@@ -83,8 +83,8 @@ export class ReceiptParserService {
 
   private extractDate(lines: string[]): string | undefined {
     const datePatterns = [
-      /(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/,
-      /(\d{2})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/,
+      /(?<!\d)(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})(?!\d)/,
+      /(?<!\d)(\d{2})[.\-\/](\d{1,2})[.\-\/](\d{1,2})(?!\d)/,
     ];
 
     for (const line of lines) {
@@ -132,15 +132,16 @@ export class ReceiptParserService {
       /합\s*계/, /총\s*액/, /결\s*제/, /부가세/, /과세/, /면세/,
       /카드/, /현금/, /거래/, /매장/, /점포/, /사업자/, /전화/,
       /주소/, /감사/, /영수증/, /포인트/, /적립/, /할인/,
-      /반품/, /교환/, /일시/, /거스름/,
-      /total/i, /subtotal/i, /amount/i, /change/i, /cash/i, /credit/i,
+      /반품/, /교환/, /일시/, /거스름/, /받을\s*금액/,
+      /total/i, /subtotal/i, /amount/i, /change/i, /cash/i, /credit/i, /vat/i,
     ];
 
     // 상품 영역 감지: "상품명" 또는 "품명" 헤더 이후부터
     let inProductSection = false;
     let headerFound = false;
 
-    for (const line of lines) {
+    for (let index = 0; index < lines.length; index++) {
+      const line = lines[index];
       // 헤더 감지
       if (/상품\s*명|품\s*명|품\s*목/.test(line)) {
         inProductSection = true;
@@ -161,6 +162,13 @@ export class ReceiptParserService {
       const shouldParse = headerFound ? inProductSection : true;
       if (!shouldParse) continue;
 
+      const multilineParsed = this.parseProductLineWithFollowingPrice(line, lines[index + 1]);
+      if (multilineParsed) {
+        results.push(multilineParsed);
+        index++;
+        continue;
+      }
+
       const parsed = this.parseLine(line);
       if (parsed) {
         results.push(parsed);
@@ -170,14 +178,37 @@ export class ReceiptParserService {
     return results;
   }
 
+  private parseProductLineWithFollowingPrice(line: string, nextLine?: string): ParsedLine | null {
+    if (!nextLine) return null;
+
+    const itemMatch = line.match(/^\s*\d{1,3}\s+(.+?)\s*$/);
+    if (!itemMatch) return null;
+
+    const priceMatch = nextLine.match(/^\s*(?:\d{6,14}\s+)?[\d,]+\s+(\d{1,3})\s+[\d,.]+\s*#?\s*$/);
+    if (!priceMatch) return null;
+
+    const name = this.cleanProductName(itemMatch[1]);
+    if (!name || this.isLikelyMetadata(name)) return null;
+
+    return {
+      name,
+      quantity: parseInt(priceMatch[1]),
+      unit: '개',
+    };
+  }
+
   private parseLine(line: string): ParsedLine | null {
+    if (this.isLikelyMetadata(line)) return null;
+
     // 패턴 1: "상품명 수량 단가 금액" (공백/탭 구분)
     // 예: "서울우유1L  1  2,800  2,800"
     const pattern1 = /^(.+?)\s+(\d+)\s+[\d,]+\s+[\d,]+\s*$/;
     const m1 = line.match(pattern1);
     if (m1) {
+      const name = this.cleanProductName(m1[1]);
+      if (this.isLikelyMetadata(name)) return null;
       return {
-        name: this.cleanProductName(m1[1]),
+        name,
         quantity: parseInt(m1[2]),
         unit: '개',
       };
@@ -188,14 +219,29 @@ export class ReceiptParserService {
     const pattern1b = /^(.+?)\s+(\d{1,2})\s+[\d,]+\s*$/;
     const m1b = line.match(pattern1b);
     if (m1b) {
+      const name = this.cleanProductName(m1b[1]);
+      if (this.isLikelyMetadata(name)) return null;
       return {
-        name: this.cleanProductName(m1b[1]),
+        name,
         quantity: parseInt(m1b[2]),
         unit: '개',
       };
     }
 
-    // 패턴 2: "상품명 금액" (수량 1 가정)
+    // 패턴 2: "수량 x 상품명 금액"
+    const pattern3 = /^(\d+)\s*[xX×]\s*(.+?)\s+[\d,]+\s*$/;
+    const m3 = line.match(pattern3);
+    if (m3) {
+      const name = this.cleanProductName(m3[2]);
+      if (this.isLikelyMetadata(name)) return null;
+      return {
+        name,
+        quantity: parseInt(m3[1]),
+        unit: '개',
+      };
+    }
+
+    // 패턴 3: "상품명 금액" (수량 1 가정)
     // 예: "국내산삼겹살  12,900"
     const pattern2 = /^(.+?)\s+([\d,]+)\s*$/;
     const m2 = line.match(pattern2);
@@ -204,23 +250,14 @@ export class ReceiptParserService {
       const amount = parseInt(m2[2].replace(/,/g, ''));
       // 금액이 100 미만이면 상품이 아닐 가능성
       if (amount >= 100 && name.length >= 2) {
+        const productName = this.cleanProductName(name);
+        if (this.isLikelyMetadata(productName)) return null;
         return {
-          name: this.cleanProductName(name),
+          name: productName,
           quantity: 1,
           unit: '개',
         };
       }
-    }
-
-    // 패턴 3: "수량 x 상품명 금액"
-    const pattern3 = /^(\d+)\s*[xX×]\s*(.+?)\s+[\d,]+\s*$/;
-    const m3 = line.match(pattern3);
-    if (m3) {
-      return {
-        name: this.cleanProductName(m3[2]),
-        quantity: parseInt(m3[1]),
-        unit: '개',
-      };
     }
 
     return null;
@@ -230,10 +267,20 @@ export class ReceiptParserService {
     return name
       .replace(/\s+/g, ' ')
       .replace(/[*#@!]/g, '')
-      .replace(/\(.*?\)/g, '')       // 괄호 안 내용 제거
-      .replace(/\d+[gGmMlLkK]+/g, '') // 용량 정보 제거 (200g, 1L 등)
+      .replace(/[()[\]]/g, '')       // 괄호 기호 제거
+      .replace(/\d+\s*(?:g|kg|ml|mle|me|l)\b/gi, '') // 용량 정보 제거 (200g, 1L 등)
       .replace(/\d+입/g, '')          // "6입" 등 제거
+      .replace(/\s+\d{3,4}$/g, '')    // OCR이 단위를 놓친 355ml -> 3550 같은 꼬리 숫자 제거
       .trim();
+  }
+
+  private isLikelyMetadata(line: string): boolean {
+    const trimmed = line.trim();
+    if (!trimmed) return true;
+    if (/^\d{6,14}$/.test(trimmed)) return true;
+    if (/^\d{6,14}\s+[\d,.\s#]+$/.test(trimmed)) return true;
+    if (/[：:]/.test(trimmed)) return true;
+    return false;
   }
 
   private guessCategory(name: string): Category {
@@ -241,7 +288,7 @@ export class ReceiptParserService {
       // 육류
       { pattern: /삼겹|목살|갈비|안심|등심|소고기|돼지|쇠고기|한우|닭|오리|양고기|불고기|다진고기|베이컨|햄|소시지|족발|보쌈/, category: 'MEAT' },
       // 해산물
-      { pattern: /연어|고등어|갈치|삼치|참치|새우|오징어|조개|게|전복|멸치|김|미역|광어|우럭|방어|꽁치|문어|낙지|굴/, category: 'SEAFOOD' },
+      { pattern: /연어|도다리|고등어|갈치|삼치|참치|새우|오징어|조개|게|전복|멸치|김|미역|광어|우럭|방어|꽁치|문어|낙지|굴/, category: 'SEAFOOD' },
       // 유제품
       { pattern: /우유|치즈|요거트|요구르트|버터|생크림|달걀|계란|두부|순두부|milk|cheese|yogurt|butter/i, category: 'DAIRY' },
       // 과일
@@ -249,7 +296,7 @@ export class ReceiptParserService {
       // 채소
       { pattern: /양파|감자|고구마|당근|시금치|배추|양배추|브로콜리|파프리카|오이|토마토|대파|쪽파|깻잎|상추|콩나물|숙주|무|마늘|생강|고추|피망|버섯|호박|가지|셀러리|부추|미나리/, category: 'VEGETABLES' },
       // 음료
-      { pattern: /물|주스|탄산|콜라|사이다|맥주|소주|막걸리|두유|커피|차/, category: 'BEVERAGE' },
+      { pattern: /물|생수|주스|탄산|콜라|사이다|맥주|소주|막걸리|두유|커피|차|이슬|하이트|테라/, category: 'BEVERAGE' },
       // 양념
       { pattern: /간장|된장|고추장|쌈장|식초|참기름|들기름|식용유|올리브유|케첩|마요|머스터드|굴소스|소금|설탕|후추|고춧가루|카레/, category: 'CONDIMENT' },
       // 냉동

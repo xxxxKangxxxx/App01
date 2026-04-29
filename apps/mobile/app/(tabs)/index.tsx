@@ -8,6 +8,7 @@ import {
   RefreshControl,
   TextInput,
   Keyboard,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -269,6 +270,159 @@ function RecentItem({ item }: { item: FoodItem }) {
           <Text style={{ fontSize: 11, fontWeight: '700', color: expiryUi.text }}>{expiryUi.label}</Text>
         </View>
       ) : null}
+    </TouchableOpacity>
+  );
+}
+
+function AddFoodActionMenu({
+  visible,
+  onClose,
+}: {
+  visible: boolean;
+  onClose: () => void;
+}) {
+  const { colors } = useThemeStore();
+
+  const handleDirectAdd = () => {
+    onClose();
+    router.push('/(tabs)/add');
+  };
+
+  const handleReceiptScan = () => {
+    onClose();
+    router.push('/(tabs)/receipt-scan');
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={onClose}
+        style={{
+          flex: 1,
+          backgroundColor: colors.overlay,
+          justifyContent: 'flex-start',
+          alignItems: 'flex-end',
+          paddingTop: 72,
+          paddingHorizontal: 16,
+        }}
+      >
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => {}}
+          style={{
+            width: 220,
+            backgroundColor: colors.bgCard,
+            borderRadius: 14,
+            borderWidth: 1,
+            borderColor: colors.border,
+            padding: 8,
+          }}
+        >
+          <TouchableOpacity
+            onPress={handleDirectAdd}
+            activeOpacity={0.75}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10,
+              paddingHorizontal: 12,
+              paddingVertical: 12,
+              borderRadius: 10,
+            }}
+          >
+            <View
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: colors.infoLight,
+              }}
+            >
+              <Ionicons name="create-outline" size={18} color={colors.info} />
+            </View>
+            <Text style={{ flex: 1, fontSize: 15, fontWeight: '700', color: colors.text }}>
+              직접 추가
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleReceiptScan}
+            activeOpacity={0.75}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 10,
+              paddingHorizontal: 12,
+              paddingVertical: 12,
+              borderRadius: 10,
+            }}
+          >
+            <View
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 17,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: colors.successLight,
+              }}
+            >
+              <Ionicons name="receipt-outline" size={18} color={colors.success} />
+            </View>
+            <Text style={{ flex: 1, fontSize: 15, fontWeight: '700', color: colors.text }}>
+              영수증 스캔
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+}
+
+function AddFridgeCard({ onPress }: { onPress: () => void }) {
+  const { colors } = useThemeStore();
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.78}
+      style={{
+        width: 140,
+        minHeight: 170,
+        borderWidth: 1.5,
+        borderStyle: 'dashed',
+        borderColor: colors.border,
+        borderRadius: 16,
+        backgroundColor: colors.bgCard,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 14,
+      }}
+    >
+      <View
+        style={{
+          width: 42,
+          height: 42,
+          borderRadius: 21,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.infoLight,
+          marginBottom: 10,
+        }}
+      >
+        <Ionicons name="add" size={24} color={colors.info} />
+      </View>
+      <Text style={{ fontSize: 14, fontWeight: '800', color: colors.text, textAlign: 'center' }}>
+        냉장고 추가
+      </Text>
+      <Text style={{ fontSize: 11, color: colors.textTertiary, textAlign: 'center', marginTop: 4, lineHeight: 16 }}>
+        새 보관 공간 등록
+      </Text>
     </TouchableOpacity>
   );
 }
@@ -558,6 +712,7 @@ export default function HomeScreen() {
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
   const [selectedExpiry, setSelectedExpiry] = useState<ExpiryStatus | null>(null);
   const [selectedFridgeId, setSelectedFridgeId] = useState<string | null>(null);
+  const [showAddMenu, setShowAddMenu] = useState(false);
 
   const isSearchActive = searchText.length > 0 || selectedCategory !== null || selectedExpiry !== null || selectedFridgeId !== null;
   const activeFilterCount = (selectedCategory ? 1 : 0) + (selectedExpiry ? 1 : 0) + (selectedFridgeId ? 1 : 0);
@@ -719,21 +874,21 @@ export default function HomeScreen() {
                 </View>
               )}
             </TouchableOpacity>
-            {/* 냉장고 추가 */}
+            {/* 식재료 추가 메뉴 */}
             <TouchableOpacity
-              onPress={() => router.push('/modals/refrigerator-setup')}
+              onPress={() => setShowAddMenu(true)}
               style={{
                 width: 36,
                 height: 36,
                 borderRadius: 18,
-                backgroundColor: colors.bgCard,
+                backgroundColor: colors.info,
                 borderWidth: 1,
-                borderColor: colors.border,
+                borderColor: colors.info,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Ionicons name="add" size={22} color={colors.textSecondary} />
+              <Ionicons name="add" size={22} color={colors.textInverse} />
             </TouchableOpacity>
           </View>
         </View>
@@ -822,6 +977,7 @@ export default function HomeScreen() {
                         onPress={() => router.push(`/modals/fridge-detail?id=${fridge.id}`)}
                       />
                     ))}
+                    <AddFridgeCard onPress={() => router.push('/modals/refrigerator-setup')} />
                   </ScrollView>
                 </View>
 
@@ -898,6 +1054,7 @@ export default function HomeScreen() {
           </>
         )}
       </ScrollView>
+      <AddFoodActionMenu visible={showAddMenu} onClose={() => setShowAddMenu(false)} />
     </SafeAreaView>
   );
 }

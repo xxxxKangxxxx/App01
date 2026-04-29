@@ -109,10 +109,10 @@ cd apps/mobile && pnpm dev     # JS만 변경 시
 ## 탭 네비게이션
 
 ```
-냉장고(snow-outline) | 추가(add-circle-outline) | 쇼핑(cart-outline) | 알림(notifications-outline) | 설정(settings-outline)
+냉장고(snow-outline) | 쇼핑(cart-outline) | 통계(stats-chart-outline) | 설정(settings-outline)
 ```
 
-숨김 라우트: `edit.tsx` (식재료 수정), `receipt-scan.tsx` (영수증 스캔), `shopping-history.tsx` (지난 장보기)
+숨김 라우트: `add.tsx` (식재료 직접 추가), `edit.tsx` (식재료 수정), `receipt-scan.tsx` (영수증 스캔), `alerts.tsx` (유통기한 임박), `shopping-history.tsx` (지난 장보기)
 
 ## API 엔드포인트
 

@@ -34,11 +34,8 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="add"
         options={{
-          title: '추가',
+          href: null,
           headerTitle: '식재료 추가',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="add-circle-outline" size={size} color={color} />
-          ),
         }}
       />
       <Tabs.Screen

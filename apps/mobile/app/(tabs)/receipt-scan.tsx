@@ -14,13 +14,23 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { recognizeTextFromImage } from '../../services/ocr';
 import { useParseReceipt, useBulkCreateFoodItems } from '../../hooks/useReceiptScan';
+import { useRefrigerators } from '../../hooks/useRefrigerators';
 import { getCategoryAccent, getCategoryIcon } from '../../constants/categoryUi';
 import { getFoodEmoji } from '../../constants/foodEmoji';
+import { getShelvesForZone, getZonesForType } from '../../components/refrigerator/fridgeConfigs';
 import type { ReceiptItem, CreateFoodItemDto, Category } from '@freshbox/types';
 import { CATEGORY_LABELS } from '@freshbox/types';
 import { useThemeStore } from '../../store/theme.store';
 
 type Step = 'select' | 'scanning' | 'manual' | 'preview';
+
+type BulkLocationSelection = {
+  refrigeratorId: string;
+  zone: string;
+  shelf: number;
+  depth: string;
+  colPosition: string;
+};
 
 const CATEGORIES: Category[] = [
   'VEGETABLES',
@@ -44,6 +54,18 @@ const EXPIRY_PRESETS = [
   { label: '1개월', days: 30 },
 ];
 
+const DEPTH_OPTIONS = [
+  { key: 'front', label: '앞' },
+  { key: 'middle', label: '중간' },
+  { key: 'back', label: '뒤' },
+];
+
+const COL_OPTIONS = [
+  { key: 'left', label: '좌' },
+  { key: 'center', label: '중' },
+  { key: 'right', label: '우' },
+];
+
 function addDaysToDate(baseDate: string | undefined, days: number): string {
   const date = baseDate ? new Date(baseDate) : new Date();
   if (Number.isNaN(date.getTime())) return '';
@@ -63,6 +85,13 @@ export default function ReceiptScanScreen() {
   const [storeName, setStoreName] = useState<string>();
   const [purchaseDate, setPurchaseDate] = useState<string>();
   const [manualText, setManualText] = useState('');
+  const [bulkLocation, setBulkLocation] = useState<BulkLocationSelection>({
+    refrigeratorId: '',
+    zone: '',
+    shelf: 1,
+    depth: '',
+    colPosition: '',
+  });
 
   const parseMutation = useParseReceipt();
   const bulkCreateMutation = useBulkCreateFoodItems();
@@ -73,6 +102,13 @@ export default function ReceiptScanScreen() {
     setStoreName(undefined);
     setPurchaseDate(undefined);
     setManualText('');
+    setBulkLocation({
+      refrigeratorId: '',
+      zone: '',
+      shelf: 1,
+      depth: '',
+      colPosition: '',
+    });
   }, []);
 
   const parseReceiptText = useCallback(async (ocrText: string) => {
@@ -161,6 +197,12 @@ export default function ReceiptScanScreen() {
       unit: item.unit,
       purchasedAt: item.purchasedAt,
       expiresAt: item.expiresAt,
+      refrigeratorId: bulkLocation.refrigeratorId || undefined,
+      zone: bulkLocation.zone || undefined,
+      shelf: bulkLocation.zone ? bulkLocation.shelf : undefined,
+      depth: bulkLocation.depth || undefined,
+      colPosition: bulkLocation.colPosition || undefined,
+      location: bulkLocation.zone || undefined,
     }));
 
     try {
@@ -208,6 +250,8 @@ export default function ReceiptScanScreen() {
       purchaseDate={purchaseDate}
       onUpdateItem={updateItem}
       onRemoveItem={removeItem}
+      location={bulkLocation}
+      onChangeLocation={setBulkLocation}
       onSubmit={handleBulkAdd}
       onRetry={resetScanState}
       isLoading={bulkCreateMutation.isPending}
@@ -358,6 +402,8 @@ function PreviewScreen({
   purchaseDate,
   onUpdateItem,
   onRemoveItem,
+  location,
+  onChangeLocation,
   onSubmit,
   onRetry,
   isLoading,
@@ -367,6 +413,8 @@ function PreviewScreen({
   purchaseDate?: string;
   onUpdateItem: (index: number, updates: Partial<ReceiptItem>) => void;
   onRemoveItem: (index: number) => void;
+  location: BulkLocationSelection;
+  onChangeLocation: (location: BulkLocationSelection) => void;
   onSubmit: () => void;
   onRetry: () => void;
   isLoading: boolean;
@@ -392,6 +440,12 @@ function PreviewScreen({
             )}
           </View>
         )}
+
+        <BulkLocationSelector
+          value={location}
+          onChange={onChangeLocation}
+          itemCount={items.length}
+        />
 
         <Text style={[styles.previewSectionTitle, { color: colors.text }]}>
           인식된 품목 ({items.length}개)
@@ -432,6 +486,235 @@ function PreviewScreen({
           )}
         </TouchableOpacity>
       </View>
+    </View>
+  );
+}
+
+function BulkLocationSelector({
+  value,
+  onChange,
+  itemCount,
+}: {
+  value: BulkLocationSelection;
+  onChange: (value: BulkLocationSelection) => void;
+  itemCount: number;
+}) {
+  const { colors } = useThemeStore();
+  const { data: refrigerators = [] } = useRefrigerators();
+  const selectedFridge = refrigerators.find((fridge) => fridge.id === value.refrigeratorId);
+  const zones = selectedFridge ? getZonesForType(selectedFridge.type) : [];
+  const maxShelves = selectedFridge && value.zone ? getShelvesForZone(selectedFridge.type, value.zone) : 0;
+
+  const handleFridgeSelect = (refrigeratorId: string) => {
+    const fridge = refrigerators.find((item) => item.id === refrigeratorId);
+    const firstZone = fridge ? getZonesForType(fridge.type)[0]?.key ?? '' : '';
+
+    onChange({
+      refrigeratorId,
+      zone: firstZone,
+      shelf: 1,
+      depth: '',
+      colPosition: '',
+    });
+  };
+
+  const handleZoneSelect = (zone: string) => {
+    onChange({
+      ...value,
+      zone,
+      shelf: 1,
+      depth: '',
+      colPosition: '',
+    });
+  };
+
+  const handleShelfSelect = (shelf: number) => {
+    onChange({ ...value, shelf });
+  };
+
+  const toggleDepth = (depth: string) => {
+    onChange({ ...value, depth: value.depth === depth ? '' : depth });
+  };
+
+  const toggleColPosition = (colPosition: string) => {
+    onChange({ ...value, colPosition: value.colPosition === colPosition ? '' : colPosition });
+  };
+
+  return (
+    <View style={[styles.locationCard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+      <View style={styles.locationHeader}>
+        <View style={styles.locationTitleRow}>
+          <Ionicons name="location-outline" size={17} color={colors.success} />
+          <Text style={[styles.locationTitle, { color: colors.text }]}>일괄 보관 위치</Text>
+        </View>
+        <Text style={[styles.locationHint, { color: colors.textTertiary }]}>
+          {itemCount}개 품목에 적용
+        </Text>
+      </View>
+
+      {refrigerators.length === 0 ? (
+        <Text style={[styles.emptyLocationText, { color: colors.textSecondary }]}>
+          냉장고를 먼저 등록하면 스캔 품목을 바로 배치할 수 있습니다.
+        </Text>
+      ) : (
+        <>
+          <View style={styles.locationSection}>
+            <Text style={[styles.locationLabel, { color: colors.textSecondary }]}>냉장고</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
+              <TouchableOpacity
+                onPress={() => handleFridgeSelect('')}
+                style={[
+                  styles.locationChip,
+                  {
+                    borderColor: !value.refrigeratorId ? colors.success : colors.border,
+                    backgroundColor: !value.refrigeratorId ? colors.successLight : colors.bgInput,
+                  },
+                ]}
+              >
+                <Text style={[styles.locationChipText, { color: !value.refrigeratorId ? colors.success : colors.textSecondary }]}>
+                  미지정
+                </Text>
+              </TouchableOpacity>
+
+              {refrigerators.map((fridge) => {
+                const selected = value.refrigeratorId === fridge.id;
+                return (
+                  <TouchableOpacity
+                    key={fridge.id}
+                    onPress={() => handleFridgeSelect(fridge.id)}
+                    style={[
+                      styles.locationChip,
+                      {
+                        borderColor: selected ? colors.success : colors.border,
+                        backgroundColor: selected ? colors.successLight : colors.bgInput,
+                      },
+                    ]}
+                  >
+                    {fridge.color ? (
+                      <View style={[styles.fridgeColorDot, { backgroundColor: fridge.color }]} />
+                    ) : null}
+                    <Text style={[styles.locationChipText, { color: selected ? colors.success : colors.text }]}>
+                      {fridge.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {selectedFridge && zones.length > 0 ? (
+            <View style={styles.locationSection}>
+              <Text style={[styles.locationLabel, { color: colors.textSecondary }]}>구역</Text>
+              <View style={styles.wrapChipRow}>
+                {zones.map((zone) => {
+                  const selected = value.zone === zone.key;
+                  return (
+                    <TouchableOpacity
+                      key={zone.key}
+                      onPress={() => handleZoneSelect(zone.key)}
+                      style={[
+                        styles.locationChip,
+                        {
+                          borderColor: selected ? colors.success : colors.border,
+                          backgroundColor: selected ? colors.successLight : colors.bgInput,
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.locationChipText, { color: selected ? colors.success : colors.text }]}>
+                        {zone.label}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
+          {value.zone && maxShelves > 0 ? (
+            <View style={styles.locationSection}>
+              <Text style={[styles.locationLabel, { color: colors.textSecondary }]}>층</Text>
+              <View style={styles.shelfRow}>
+                {Array.from({ length: maxShelves }, (_, index) => index + 1).map((shelf) => {
+                  const selected = value.shelf === shelf;
+                  return (
+                    <TouchableOpacity
+                      key={shelf}
+                      onPress={() => handleShelfSelect(shelf)}
+                      style={[
+                        styles.shelfChip,
+                        {
+                          borderColor: selected ? colors.success : colors.border,
+                          backgroundColor: selected ? colors.successLight : colors.bgInput,
+                        },
+                      ]}
+                    >
+                      <Text style={[styles.shelfText, { color: selected ? colors.success : colors.text }]}>
+                        {shelf}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </View>
+          ) : null}
+
+          {value.zone ? (
+            <>
+              <View style={styles.locationSection}>
+                <Text style={[styles.locationLabel, { color: colors.textSecondary }]}>깊이</Text>
+                <View style={styles.segmentRow}>
+                  {DEPTH_OPTIONS.map((option) => {
+                    const selected = value.depth === option.key;
+                    return (
+                      <TouchableOpacity
+                        key={option.key}
+                        onPress={() => toggleDepth(option.key)}
+                        style={[
+                          styles.segmentChip,
+                          {
+                            borderColor: selected ? colors.success : colors.border,
+                            backgroundColor: selected ? colors.successLight : colors.bgInput,
+                          },
+                        ]}
+                      >
+                        <Text style={[styles.segmentText, { color: selected ? colors.success : colors.textSecondary }]}>
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.locationSection}>
+                <Text style={[styles.locationLabel, { color: colors.textSecondary }]}>좌/우 위치</Text>
+                <View style={styles.segmentRow}>
+                  {COL_OPTIONS.map((option) => {
+                    const selected = value.colPosition === option.key;
+                    return (
+                      <TouchableOpacity
+                        key={option.key}
+                        onPress={() => toggleColPosition(option.key)}
+                        style={[
+                          styles.segmentChip,
+                          {
+                            borderColor: selected ? colors.success : colors.border,
+                            backgroundColor: selected ? colors.successLight : colors.bgInput,
+                          },
+                        ]}
+                      >
+                        <Text style={[styles.segmentText, { color: selected ? colors.success : colors.textSecondary }]}>
+                          {option.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            </>
+          ) : null}
+        </>
+      )}
     </View>
   );
 }
@@ -774,6 +1057,98 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 8,
+  },
+  locationCard: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 14,
+    gap: 12,
+  },
+  locationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 10,
+  },
+  locationTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  locationTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  locationHint: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  emptyLocationText: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  locationSection: {
+    gap: 7,
+  },
+  locationLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  locationChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderRadius: 18,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    gap: 5,
+  },
+  locationChipText: {
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  fridgeColorDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+  },
+  wrapChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  shelfRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  shelfChip: {
+    width: 34,
+    height: 34,
+    borderWidth: 1.5,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shelfText: {
+    fontSize: 13,
+    fontWeight: '800',
+  },
+  segmentRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  segmentChip: {
+    flex: 1,
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderRadius: 10,
+    paddingVertical: 8,
+  },
+  segmentText: {
+    fontSize: 13,
+    fontWeight: '700',
   },
   // Item Card
   itemCard: {

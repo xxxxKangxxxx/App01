@@ -387,8 +387,9 @@ freshbox/                        ← 모노레포 루트
 
 ### 네비게이션 탭 구성
 ```
-현재: 냉장고 | 추가 | 쇼핑 | 통계 | 설정   (5탭)
-      snow-outline / add-circle-outline / cart-outline / stats-chart-outline / settings-outline
+현재: 냉장고 | 쇼핑 | 통계 | 설정   (4탭)
+      snow-outline / cart-outline / stats-chart-outline / settings-outline
+      식재료 추가는 홈 우측 상단 + 메뉴에서 `직접 추가` 또는 `영수증 스캔`으로 진입
       알림은 홈 헤더 우측 벨 아이콘 (숨김 라우트 `alerts.tsx`)
 향후: 레시피 탭 추가 시 재구성 예정
 ```

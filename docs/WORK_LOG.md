@@ -685,3 +685,67 @@ xcrun simctl launch booted com.freshbox.app
 - Metro 서버: `localhost:8082`
 - iOS 시뮬레이터
 - 로컬 실제 영수증 이미지: `test_receipt.png`는 커밋하지 않음
+
+---
+
+## 2026-04-29 — 영수증 일괄 위치 선택 및 홈 추가 액션 정리
+
+### 배경
+
+영수증 스캔으로 식재료를 일괄 추가할 때 냉장고/구역/층 위치를 지정할 수 없어 추가 후 미분류 상태로 남는 문제가 있었다. 또한 냉장고 탭 우측 상단 `+`가 냉장고 추가로 동작하고, 하단 `추가` 탭도 별도 탭처럼 보여 식재료 추가 진입 구조가 혼동될 수 있었다.
+
+### 수정 사항
+
+- 영수증 스캔 결과 화면에 일괄 보관 위치 선택 UI 추가.
+  - 냉장고, 구역, 층, 깊이, 좌/우 위치를 한 번 선택해 모든 OCR 품목에 공통 적용.
+  - 냉장고 선택 시 첫 번째 구역을 자동 선택.
+  - 구역 변경 시 층/깊이/좌우 위치 초기화.
+  - 냉장고가 없으면 위치 없이 기존대로 일괄 추가 가능.
+- 영수증 일괄 추가 payload에 위치 필드 전달.
+  - `refrigeratorId`, `zone`, `shelf`, `depth`, `colPosition`, `location`
+- 홈 우측 상단 `+` 액션을 식재료 추가 메뉴로 변경.
+  - `직접 추가`
+  - `영수증 스캔`
+- 기존 냉장고 추가 진입은 냉장고 carousel 마지막 `냉장고 추가` 카드로 이동.
+- 하단 `추가` 탭 제거.
+  - `add.tsx`는 숨김 라우트로 유지.
+  - 직접 추가 화면에서 중복 영수증 스캔 CTA 제거.
+- README와 CLAUDE.md의 탭 네비게이션 설명을 4탭 구조로 업데이트.
+
+### 문제와 해결
+
+| 문제 | 원인 | 해결 |
+|------|------|------|
+| 영수증 추가 품목이 미분류로 들어감 | 모바일 스캔 화면에서 bulk create payload에 위치 필드를 전달하지 않음 | 스캔 결과 화면에 일괄 위치 상태를 추가하고 모든 품목 payload에 적용 |
+| 홈 우측 상단 `+` 의미가 모호함 | 식재료 추가가 아니라 냉장고 추가 모달로 연결됨 | `+`를 식재료 추가 메뉴로 변경 |
+| 냉장고 추가 진입 위치가 전역 액션처럼 보임 | 냉장고 추가 버튼이 홈 헤더에 배치됨 | 냉장고 목록 마지막 카드로 이동 |
+| 하단 `추가` 탭이 액션인데 주요 탭을 차지함 | 직접 추가 화면이 탭바에 노출됨 | `href: null`로 숨김 라우트 처리 |
+| 시뮬레이터에서 `App entry not found` 표시 | 8082 포트가 다른 프로젝트(DreamTeller) Metro 프로세스에 연결되어 잘못된 번들을 로드 | 해당 원인을 확인했고, 이후 포트 충돌 정리 후 Freshbox Metro 실행 시도 |
+
+### 검증 결과
+
+- `pnpm --filter=@freshbox/mobile exec tsc --noEmit` 통과.
+- `pnpm --filter=@freshbox/api build` 통과.
+- `git diff --check` 통과.
+- 시뮬레이터 오류 캡처 확인:
+  - `App entry not found`
+  - 원인: 8082 포트가 Freshbox가 아닌 다른 프로젝트 Metro에 물려 있었음.
+- 마무리 시 `localhost:3000`, `localhost:8082` 리슨 프로세스 없음 확인.
+
+### 남은 주의사항
+
+- Freshbox Expo dev server를 다시 띄울 때 8082 포트가 비어 있는지 먼저 확인한다.
+- 오늘 마지막 시도에서 Expo CLI 프로세스가 시작 로그 이후 포트를 열지 않는 상태가 있었으므로, 다음 시작 시 `EXPO_DEBUG=1 pnpm dev` 또는 `pnpm --filter=@freshbox/mobile exec expo start --dev-client --port 8082 --clear`로 로그를 보며 확인한다.
+- 실제 시뮬레이터 UI 검증은 아직 완료하지 못했다.
+  - 홈 `+` 메뉴
+  - 직접 추가 진입
+  - 영수증 스캔 결과 위치 선택
+  - 냉장고 추가 카드
+  - 탭바 4개 표시
+
+### 다음 작업 시작 시 확인
+
+```bash
+lsof -nP -iTCP:8082 -sTCP:LISTEN
+pnpm --filter=@freshbox/mobile exec expo start --dev-client --port 8082 --clear
+```
